@@ -353,8 +353,8 @@ html, body {
 <!-- ジャイロオーバーレイ -->
 <div id="gyro-overlay">
   <p>iPhoneを動かして<br>景色を探索するために<br>向きセンサーの使用を<br>許可してください</p>
-  <button id="gyro-btn">向き検知をONにする</button>
-  <button id="gyro-skip">スキップ（手動スワイプで操作）</button>
+  <button id="gyro-btn" onclick="handleGyroBtn()" ontouchstart="event.preventDefault();handleGyroBtn()">向き検知をONにする</button>
+  <button id="gyro-skip" onclick="handleGyroSkip()" ontouchstart="event.preventDefault();handleGyroSkip()">スキップ（手動スワイプで操作）</button>
 </div>
 
 <!-- 詳細パネル -->
@@ -403,6 +403,34 @@ var SPOTS = [
 var DIRS_JA = ['北','北北東','北東','東北東','東','東南東','南東','南南東','南','南南西','南西','西南西','西','西北西','北西','北北西'];
 var DIRS_EN = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
 var DIRS_ZH = ['北','北北东','北东','东北东','东','东南东','南东','南南东','南','南南西','南西','西南西','西','西北西','北西','北北西'];
+
+function startGyro() {
+  window.addEventListener('deviceorientation', function(e) {
+    if(e.alpha !== null && !dragging) {
+      bearing = e.alpha;
+      if(view === 'ar') { renderAR(); updateHUD(); }
+    }
+  }, false);
+}
+
+// ── GYRO HANDLERS (defined first so inline onclick can find them) ──
+function handleGyroBtn() {
+  var ov = document.getElementById('gyro-overlay');
+  function hideOv() { ov.style.display='none'; ov.style.pointerEvents='none'; }
+  if(typeof DeviceOrientationEvent !== 'undefined' &&
+     typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(function(state) {
+      if(state === 'granted') { startGyro(); hideOv(); }
+      else { document.getElementById('gyro-btn').textContent = '許可してください'; }
+    }).catch(function() { startGyro(); hideOv(); });
+  } else { startGyro(); hideOv(); }
+}
+
+function handleGyroSkip() {
+  var ov = document.getElementById('gyro-overlay');
+  ov.style.display = 'none';
+  ov.style.pointerEvents = 'none';
+}
 
 // ── STATE ──
 var lang = 'ja';
@@ -880,39 +908,8 @@ document.querySelectorAll('.lb').forEach(function(btn) {
 });
 
 // ── GYRO ──
-function startGyro() {
-  window.addEventListener('deviceorientation', function(e) {
-    if(e.alpha !== null && !dragging) {
-      bearing = e.alpha;
-      if(view === 'ar') { renderAR(); updateHUD(); }
-    }
-  }, false);
-}
 
-function handleGyroBtn() {
-  var ov = document.getElementById('gyro-overlay');
-  function hideOv() { ov.style.display='none'; ov.style.pointerEvents='none'; }
-  if(typeof DeviceOrientationEvent !== 'undefined' &&
-     typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission().then(function(state) {
-      if(state === 'granted') { startGyro(); hideOv(); }
-      else { document.getElementById('gyro-btn').textContent = '許可してください'; }
-    }).catch(function() { startGyro(); hideOv(); });
-  } else { startGyro(); hideOv(); }
-}
-document.getElementById('gyro-btn').addEventListener('touchstart', function(e) {
-  e.preventDefault(); handleGyroBtn();
-}, {passive:false});
-document.getElementById('gyro-btn').addEventListener('click', handleGyroBtn);
-
-function handleGyroSkip() {
-  var ov = document.getElementById('gyro-overlay');
-  ov.style.display = 'none'; ov.style.pointerEvents = 'none';
-}
-document.getElementById('gyro-skip').addEventListener('touchstart', function(e) {
-  e.preventDefault(); handleGyroSkip();
-}, {passive:false});
-document.getElementById('gyro-skip').addEventListener('click', handleGyroSkip);
+// gyro handlers moved to top of script
 
 // Auto-pan removed - causes touch interference on iOS
 
