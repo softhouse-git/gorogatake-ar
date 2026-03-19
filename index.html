@@ -494,8 +494,23 @@ function renderAR() {
     pin.appendChild(stem);
     pin.appendChild(dot);
 
-    // Use closure to capture s
+    // Use closure to capture s - use touchend for iOS (click suppressed by preventDefault)
     (function(spot) {
+      var tStartX = 0, tStartY = 0;
+      pin.addEventListener('touchstart', function(e) {
+        tStartX = e.touches[0].clientX;
+        tStartY = e.touches[0].clientY;
+        e.stopPropagation();
+      }, {passive:true});
+      pin.addEventListener('touchend', function(e) {
+        var dx = Math.abs(e.changedTouches[0].clientX - tStartX);
+        var dy = Math.abs(e.changedTouches[0].clientY - tStartY);
+        if(dx < 10 && dy < 10) {
+          e.stopPropagation();
+          e.preventDefault();
+          openPanel(spot);
+        }
+      }, {passive:false});
       pin.addEventListener('click', function(e) {
         e.stopPropagation();
         openPanel(spot);
@@ -634,6 +649,10 @@ function openPanel(s) {
   document.getElementById('panel').classList.add('open');
 }
 
+document.getElementById('pclose').addEventListener('touchend', function(e) {
+  e.preventDefault();
+  document.getElementById('panel').classList.remove('open');
+});
 document.getElementById('pclose').addEventListener('click', function() {
   document.getElementById('panel').classList.remove('open');
 });
@@ -691,7 +710,8 @@ function inertia() {
 
 // ── VIEW SWITCH ──
 document.querySelectorAll('.vb').forEach(function(btn) {
-  btn.addEventListener('click', function() {
+  btn.addEventListener('touchend', function(e) {
+    e.preventDefault();
     view = this.dataset.v;
     document.querySelectorAll('.vb').forEach(function(b) {
       b.classList.toggle('on', b.dataset.v === view);
@@ -706,7 +726,8 @@ document.querySelectorAll('.vb').forEach(function(btn) {
 
 // ── FILTERS ──
 document.querySelectorAll('.fb').forEach(function(btn) {
-  btn.addEventListener('click', function() {
+  btn.addEventListener('touchend', function(e) {
+    e.preventDefault();
     var l = this.dataset.l;
     activeL[l] = !activeL[l];
     this.classList.toggle('on', activeL[l]);
@@ -717,7 +738,8 @@ document.querySelectorAll('.fb').forEach(function(btn) {
 
 // ── LANGUAGE ──
 document.querySelectorAll('.lb').forEach(function(btn) {
-  btn.addEventListener('click', function() {
+  btn.addEventListener('touchend', function(e) {
+    e.preventDefault();
     lang = this.dataset.l;
     document.querySelectorAll('.lb').forEach(function(b) {
       b.classList.toggle('on', b.dataset.l === lang);
