@@ -896,7 +896,6 @@ window.addEventListener('resize', function() {
 // ==============================
 (function() {
   var op = document.getElementById('opening');
-  var started = false;
 
   // Add stars
   for (var i = 0; i < 50; i++) {
@@ -908,23 +907,26 @@ window.addEventListener('resize', function() {
   }
 
   function doClose() {
-    if (started) return;
-    started = true;
-    op.style.transition = 'opacity .5s ease';
+    op.style.transition = 'opacity .6s ease';
     op.style.opacity = '0';
-    setTimeout(function() { op.style.display = 'none'; }, 500);
+    setTimeout(function() { op.style.display = 'none'; }, 650);
   }
 
-  // Intercept ALL touches on the document while opening is visible
-  document.addEventListener('touchstart', function(e) {
-    if (op.style.display === 'none') return;
-    doClose();
-  }, {passive:true, capture:true});
+  // Countdown: 5 seconds
+  var count = 5;
+  var circle = document.getElementById('op-ring-circle');
+  var numEl = document.getElementById('op-count-num');
+  var total = 150.8;
 
-  document.addEventListener('click', function(e) {
-    if (op.style.display === 'none') return;
-    doClose();
-  }, {capture:true});
+  var timer = setInterval(function() {
+    count--;
+    numEl.textContent = count;
+    circle.style.strokeDashoffset = total * (1 - count / 5);
+    if (count <= 0) {
+      clearInterval(timer);
+      doClose();
+    }
+  }, 1000);
 })();
 
 // ==============================
@@ -950,10 +952,18 @@ updateHUD();
     <div class="op-title-ja">天空の<br>透明な図書館</div>
     <div class="op-title-sub">五老スカイタワー AR展望ガイド</div>
     <div class="op-tagline">絶景の「意味」を知り、<br>記憶に刻む。</div>
-    <button class="op-start" id="op-start-btn" onclick="closeOpening()">
-      AR ガイドを始める
-    </button>
-    <div class="op-hint">タップして開始</div>
+    <div id="op-countdown" style="margin-top:8px;">
+      <div id="op-count-ring" style="width:56px;height:56px;margin:0 auto 10px;position:relative;">
+        <svg viewBox="0 0 56 56" style="width:56px;height:56px;transform:rotate(-90deg);">
+          <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(91,200,255,.2)" stroke-width="3"/>
+          <circle id="op-ring-circle" cx="28" cy="28" r="24" fill="none" stroke="#5bc8ff" stroke-width="3"
+            stroke-dasharray="150.8" stroke-dashoffset="0" stroke-linecap="round"
+            style="transition:stroke-dashoffset .1s linear;"/>
+        </svg>
+        <div id="op-count-num" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;font-weight:700;color:#5bc8ff;">5</div>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);letter-spacing:.06em;">秒後に自動で開始します</div>
+    </div>
   </div>
 </div>
 
