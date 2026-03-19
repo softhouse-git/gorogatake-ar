@@ -209,56 +209,7 @@ html, body {
   white-space:nowrap;
 }
 
-/* ── ジャイロボタン ── */
-#gyro-overlay {
-  position:fixed;
-  top:0; left:0; right:0; bottom:0;
-  z-index:99999;
-  background:rgba(0,10,30,.92);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:24px;
-  pointer-events:auto;
-  -webkit-overflow-scrolling:auto;
-}
-#gyro-overlay button {
-  pointer-events:auto;
-  cursor:pointer;
-  -webkit-user-select:none;
-  user-select:none;
-}
-#gyro-overlay p {
-  color:rgba(255,255,255,.85);
-  font-size:16px;
-  line-height:1.7;
-  text-align:center;
-  margin-bottom:28px;
-  max-width:280px;
-}
-#gyro-btn {
-  padding:16px 40px;
-  border-radius:32px;
-  border:2px solid #5bc8ff;
-  background:#001428;
-  color:#5bc8ff;
-  font-size:18px;
-  font-weight:700;
-  cursor:pointer;
-  -webkit-appearance:none;
-  margin-bottom:14px;
-}
-#gyro-skip {
-  padding:10px 24px;
-  border-radius:20px;
-  border:1px solid rgba(255,255,255,.25);
-  background:transparent;
-  color:rgba(255,255,255,.5);
-  font-size:13px;
-  cursor:pointer;
-  -webkit-appearance:none;
-}
+/* gyro overlay created via JS */
 
 /* ── 詳細パネル ── */
 #panel {
@@ -416,10 +367,56 @@ function startGyro() {
   }, false);
 }
 
-// ── GYRO HANDLERS (defined first so inline onclick can find them) ──
+// ── GYRO OVERLAY (created outside body to avoid touch interference) ──
+(function() {
+  var ov = document.createElement('div');
+  ov.id = 'gyro-overlay';
+  ov.setAttribute('style', [
+    'position:fixed','top:0','left:0','right:0','bottom:0',
+    'z-index:2147483647', // max z-index
+    'background:rgba(0,10,30,0.92)',
+    'display:flex','flex-direction:column',
+    'align-items:center','justify-content:center',
+    'padding:24px'
+  ].join(';'));
+
+  var p = document.createElement('p');
+  p.innerHTML = 'iPhoneを動かして<br>景色を探索するために<br>向きセンサーの使用を<br>許可してください';
+  p.setAttribute('style','color:rgba(255,255,255,.85);font-size:16px;line-height:1.7;text-align:center;margin-bottom:28px;');
+  ov.appendChild(p);
+
+  var btn = document.createElement('button');
+  btn.id = 'gyro-btn';
+  btn.textContent = '向き検知をONにする';
+  btn.setAttribute('style', [
+    'padding:16px 40px','border-radius:32px',
+    'border:2px solid #5bc8ff','background:#001428',
+    'color:#5bc8ff','font-size:18px','font-weight:700',
+    'cursor:pointer','margin-bottom:14px',
+    '-webkit-appearance:none','display:block',
+    'pointer-events:auto'
+  ].join(';'));
+  ov.appendChild(btn);
+
+  var skip = document.createElement('button');
+  skip.id = 'gyro-skip';
+  skip.textContent = 'スキップ（手動スワイプで操作）';
+  skip.setAttribute('style', [
+    'padding:10px 24px','border-radius:20px',
+    'border:1px solid rgba(255,255,255,.3)','background:transparent',
+    'color:rgba(255,255,255,.6)','font-size:13px',
+    'cursor:pointer','-webkit-appearance:none','display:block',
+    'pointer-events:auto'
+  ].join(';'));
+  ov.appendChild(skip);
+
+  // Append to <html> element, completely outside <body>
+  document.documentElement.appendChild(ov);
+})();
+
 function handleGyroBtn() {
   var ov = document.getElementById('gyro-overlay');
-  function hideOv() { ov.style.display='none'; ov.style.pointerEvents='none'; }
+  function hideOv() { ov.style.display='none'; }
   if(typeof DeviceOrientationEvent !== 'undefined' &&
      typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().then(function(state) {
@@ -430,9 +427,7 @@ function handleGyroBtn() {
 }
 
 function handleGyroSkip() {
-  var ov = document.getElementById('gyro-overlay');
-  ov.style.display = 'none';
-  ov.style.pointerEvents = 'none';
+  document.getElementById('gyro-overlay').style.display = 'none';
 }
 
 // ── STATE ──
@@ -912,7 +907,9 @@ document.querySelectorAll('.lb').forEach(function(btn) {
 
 // ── GYRO ──
 
-// gyro handlers moved to top of script
+// Wire up gyro buttons
+document.getElementById('gyro-btn').addEventListener('click', handleGyroBtn);
+document.getElementById('gyro-skip').addEventListener('click', handleGyroSkip);
 
 // Auto-pan removed - causes touch interference on iOS
 
@@ -925,11 +922,5 @@ window.addEventListener('resize', function() {
   else renderMap();
 });
 </script>
-<!-- ジャイロオーバーレイ（最前面） -->
-<div id="gyro-overlay">
-  <p>iPhoneを動かして<br>景色を探索するために<br>向きセンサーの使用を<br>許可してください</p>
-  <button id="gyro-btn" onclick="handleGyroBtn()" style="pointer-events:auto;cursor:pointer;">向き検知をONにする</button>
-  <button id="gyro-skip" onclick="handleGyroSkip()" style="pointer-events:auto;cursor:pointer;">スキップ（手動スワイプで操作）</button>
-</div>
 </body>
 </html>
