@@ -895,8 +895,10 @@ window.addEventListener('resize', function() {
 // OPENING
 // ==============================
 (function() {
-  // Add stars
   var op = document.getElementById('opening');
+  var started = false;
+
+  // Add stars
   for (var i = 0; i < 50; i++) {
     var s = document.createElement('div');
     s.className = 'op-star';
@@ -905,21 +907,24 @@ window.addEventListener('resize', function() {
     op.appendChild(s);
   }
 
-  window.closeOpening = function() {
-    op.classList.add('fade-out');
-    setTimeout(function() { op.style.display = 'none'; }, 600);
+  function doClose() {
+    if (started) return;
+    started = true;
+    op.style.transition = 'opacity .5s ease';
+    op.style.opacity = '0';
+    setTimeout(function() { op.style.display = 'none'; }, 500);
   }
 
-  var startBtn = document.getElementById('op-start-btn');
-  startBtn.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    closeOpening();
-  }, {passive:false});
-  startBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    closeOpening();
-  });
+  // Intercept ALL touches on the document while opening is visible
+  document.addEventListener('touchstart', function(e) {
+    if (op.style.display === 'none') return;
+    doClose();
+  }, {passive:true, capture:true});
+
+  document.addEventListener('click', function(e) {
+    if (op.style.display === 'none') return;
+    doClose();
+  }, {capture:true});
 })();
 
 // ==============================
