@@ -749,45 +749,7 @@ function startGyro() {
   });
 }
 
-// Always show gyro button — works for iOS 13+ and Android
-const gyroBtn = document.createElement('button');
-gyroBtn.id = 'gyro-btn';
-gyroBtn.textContent = '📡 向き検知をONにする';
-gyroBtn.style.cssText = [
-  'position:fixed','bottom:90px','left:50%','transform:translateX(-50%)',
-  'z-index:9999','padding:12px 24px','border-radius:28px',
-  'border:1px solid rgba(91,200,255,.6)',
-  'background:rgba(0,20,50,.92)','backdrop-filter:blur(12px)',
-  '-webkit-backdrop-filter:blur(12px)',
-  'color:#5bc8ff','font-size:14px','font-family:inherit','font-weight:600',
-  'cursor:pointer','white-space:nowrap','letter-spacing:.04em',
-  'box-shadow:0 0 24px rgba(91,200,255,.3)',
-  '-webkit-appearance:none'
-].join(';');
-document.body.appendChild(gyroBtn);
-
-gyroBtn.addEventListener('click', () => {
-  if(typeof DeviceOrientationEvent !== 'undefined' &&
-     typeof DeviceOrientationEvent.requestPermission === 'function') {
-    // iOS 13+
-    DeviceOrientationEvent.requestPermission().then(state => {
-      if(state === 'granted') {
-        startGyro();
-        gyroBtn.remove();
-      } else {
-        gyroBtn.textContent = '❌ 許可が必要です';
-      }
-    }).catch(() => {
-      // fallback: try without permission API
-      startGyro();
-      gyroBtn.remove();
-    });
-  } else {
-    // Android / older iOS
-    startGyro();
-    gyroBtn.remove();
-  }
-});
+// Gyro button — created in init() to ensure DOM is ready
 
 // Auto-demo pan
 let autoPan=true; setTimeout(()=>autoPan=false,10000);
@@ -801,10 +763,55 @@ let autoPan=true; setTimeout(()=>autoPan=false,10000);
 // ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
+function setupGyroButton() {
+  const gyroBtn = document.createElement('button');
+  gyroBtn.id = 'gyro-btn';
+  gyroBtn.textContent = '📡 向き検知をONにする';
+  gyroBtn.setAttribute('style', [
+    'position:fixed',
+    'bottom:90px',
+    'left:50%',
+    'transform:translateX(-50%)',
+    'z-index:9999',
+    'padding:12px 24px',
+    'border-radius:28px',
+    'border:2px solid #5bc8ff',
+    'background:#001428',
+    'color:#5bc8ff',
+    'font-size:15px',
+    'font-weight:700',
+    'cursor:pointer',
+    'white-space:nowrap',
+    'display:block'
+  ].join(';'));
+  document.body.appendChild(gyroBtn);
+
+  gyroBtn.addEventListener('click', function() {
+    if(typeof DeviceOrientationEvent !== 'undefined' &&
+       typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(function(state) {
+        if(state === 'granted') {
+          startGyro();
+          gyroBtn.parentNode && gyroBtn.parentNode.removeChild(gyroBtn);
+        } else {
+          gyroBtn.textContent = '許可してください';
+        }
+      }).catch(function() {
+        startGyro();
+        gyroBtn.parentNode && gyroBtn.parentNode.removeChild(gyroBtn);
+      });
+    } else {
+      startGyro();
+      gyroBtn.parentNode && gyroBtn.parentNode.removeChild(gyroBtn);
+    }
+  });
+}
+
 function init() {
   buildFilters();
   renderAR();
   updateHUD();
+  setupGyroButton();
 }
 
 window.addEventListener('resize', () => {
