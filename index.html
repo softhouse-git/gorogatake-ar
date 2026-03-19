@@ -909,13 +909,15 @@ window.addEventListener('resize', function() {
     setTimeout(function() { op.style.display = 'none'; }, 600);
   }
 
-  document.getElementById('op-start-btn').addEventListener('click', closeOpening);
-  document.getElementById('op-start-btn').addEventListener('touchend', function(e) {
-    e.preventDefault(); closeOpening();
-  });
-  // Also close on tap anywhere on opening
-  op.addEventListener('click', function(e) {
-    if (e.target === op) closeOpening();
+  var startBtn = document.getElementById('op-start-btn');
+  startBtn.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    closeOpening();
+  }, {passive:false});
+  startBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    closeOpening();
   });
 })();
 
