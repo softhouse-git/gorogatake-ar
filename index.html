@@ -714,7 +714,7 @@ function fetchWikiImage(name, callback) {
     encodeURIComponent(query) +
     '&prop=pageimages&pithumbsize=600&format=json&origin=*';
 
-  fetch(url)
+  try { fetch(url)
     .then(function(r){ return r.json(); })
     .then(function(data){
       var pages = data.query && data.query.pages;
@@ -738,6 +738,7 @@ function fetchWikiImage(name, callback) {
       }
     })
     .catch(function(){ callback(null); });
+  } catch(e) { callback(null); }
 }
 
 function openPanel(s) {
@@ -888,37 +889,30 @@ function startGyro() {
   }, false);
 }
 
-document.getElementById('gyro-btn').addEventListener('click', function() {
+function handleGyroBtn() {
+  var ov = document.getElementById('gyro-overlay');
+  function hideOv() { ov.style.display='none'; ov.style.pointerEvents='none'; }
   if(typeof DeviceOrientationEvent !== 'undefined' &&
      typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().then(function(state) {
-      if(state === 'granted') {
-        startGyro();
-        var ov = document.getElementById('gyro-overlay');
-        ov.style.display = 'none';
-        ov.style.pointerEvents = 'none';
-      } else {
-        document.getElementById('gyro-btn').textContent = '許可してください';
-      }
-    }).catch(function() {
-      startGyro();
-      var ov = document.getElementById('gyro-overlay');
-      ov.style.display = 'none';
-      ov.style.pointerEvents = 'none';
-    });
-  } else {
-    startGyro();
-    var ov2 = document.getElementById('gyro-overlay');
-    ov2.style.display = 'none';
-    ov2.style.pointerEvents = 'none';
-  }
-});
+      if(state === 'granted') { startGyro(); hideOv(); }
+      else { document.getElementById('gyro-btn').textContent = '許可してください'; }
+    }).catch(function() { startGyro(); hideOv(); });
+  } else { startGyro(); hideOv(); }
+}
+document.getElementById('gyro-btn').addEventListener('touchstart', function(e) {
+  e.preventDefault(); handleGyroBtn();
+}, {passive:false});
+document.getElementById('gyro-btn').addEventListener('click', handleGyroBtn);
 
-document.getElementById('gyro-skip').addEventListener('click', function() {
+function handleGyroSkip() {
   var ov = document.getElementById('gyro-overlay');
-  ov.style.display = 'none';
-  ov.style.pointerEvents = 'none';
-});
+  ov.style.display = 'none'; ov.style.pointerEvents = 'none';
+}
+document.getElementById('gyro-skip').addEventListener('touchstart', function(e) {
+  e.preventDefault(); handleGyroSkip();
+}, {passive:false});
+document.getElementById('gyro-skip').addEventListener('click', handleGyroSkip);
 
 // Auto-pan removed - causes touch interference on iOS
 
