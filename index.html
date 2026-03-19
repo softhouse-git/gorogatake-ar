@@ -6,6 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>五老スカイタワー AR展望ガイド</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
@@ -166,6 +168,8 @@ html, body {
   overflow:hidden;
 }
 #mapview.show { display:block; }
+#leaflet-map { width:100%; height:100%; }
+.leaflet-container { background:#07111f; }
 
 /* ── ビュー切替 ── */
 #vsw {
@@ -458,41 +462,104 @@ function renderAR() {
   ar.innerHTML = '';
   var count = 0;
 
+  // Collect visible spots
+  var visible = [];
   for(var i = 0; i < SPOTS.length; i++) {
     var s = SPOTS[i];
     if(!activeL[s.layer]) continue;
-
     var x = bearingToX(s.b);
     if(x < -120 || x > W + 120) continue;
+    visible.push({
+      s: s,
+      anchorX: x,   // original x (pin dot stays here)
+      anchorY: layerY(s.layer),
+      labelX: x,    // label position (will be adjusted)
+      labelY: layerY(s.layer),
+      sh: stemH(s.layer),
+      w: 130, h: 28  // approx label size
+    });
+  }
+
+  // Multi-pass collision avoidance for labels
+  var PASS = 8;
+  for(var p = 0; p < PASS; p++) {
+    for(var ci = 0; ci < visible.length; ci++) {
+      for(var cj = ci + 1; cj < visible.length; cj++) {
+        var a = visible[ci], b = visible[cj];
+        var overlapX = (a.w + b.w) / 2 - Math.abs(a.labelX - b.labelX);
+        var overlapY = (a.h + b.h) / 2 + 6 - Math.abs(a.labelY - b.labelY);
+        if(overlapX > 0 && overlapY > 0) {
+          // Push apart — prefer vertical separation
+          var dy = a.labelY < b.labelY ? -1 : 1;
+          var dx = a.labelX < b.labelX ? -1 : 1;
+          if(overlapY < overlapX) {
+            // vertical push
+            a.labelY -= dy * (overlapY / 2 + 2);
+            b.labelY += dy * (overlapY / 2 + 2);
+          } else {
+            // horizontal push
+            a.labelX -= dx * (overlapX / 2 + 2);
+            b.labelX += dx * (overlapX / 2 + 2);
+          }
+        }
+      }
+    }
+  }
+
+  for(var vi = 0; vi < visible.length; vi++) {
+    var item = visible[vi];
+    var s = item.s;
+    var x = item.anchorX;
     count++;
+    var y = item.anchorY;
+    var sh = item.sh;
 
-    var y = layerY(s.layer);
-    var sh = stemH(s.layer);
-
+    // Wrapper at anchor point (dot)
     var pin = document.createElement('div');
     pin.className = 'pin';
     pin.setAttribute('data-l', s.layer);
-    // Position: left = x - half of label width (approximate with margin-left)
-    pin.style.left = Math.round(x) + 'px';
-    pin.style.top = Math.round(y) + 'px';
-    pin.style.transform = 'translateX(-50%)';
+    pin.style.cssText = 'position:absolute;left:' + Math.round(item.anchorX) + 'px;top:' + Math.round(item.anchorY) + 'px;transform:none;';
 
+    // Dot at anchor
+    var dot = document.createElement('div');
+    dot.className = 'pdot';
+    dot.style.cssText = 'position:absolute;left:-4px;top:-4px;';
+    pin.appendChild(dot);
+
+    // Label offset from anchor
+    var lOffX = Math.round(item.labelX - item.anchorX);
+    var lOffY = Math.round(item.labelY - item.anchorY);
     var lbl = document.createElement('div');
     lbl.className = 'plabel';
     lbl.textContent = getName(s);
-    // Center the label by shifting left
-    lbl.style.position = 'relative';
+    lbl.style.cssText = 'position:absolute;left:' + lOffX + 'px;top:' + lOffY + 'px;transform:translateX(-50%);white-space:nowrap;';
+    pin.appendChild(lbl);
 
+    // Connector line from dot to label (SVG)
+    var dist = Math.sqrt(lOffX*lOffX + lOffY*lOffY);
+    if(dist > 8) {
+      var svgNS = 'http://www.w3.org/2000/svg';
+      var sv = document.createElementNS(svgNS, 'svg');
+      var pw = Math.abs(lOffX) + 4, ph = Math.abs(lOffY) + 4;
+      var ox = lOffX < 0 ? -lOffX + 2 : 2;
+      var oy = lOffY < 0 ? -lOffY + 2 : 2;
+      sv.setAttribute('width', pw); sv.setAttribute('height', ph);
+      sv.style.cssText = 'position:absolute;left:' + (lOffX < 0 ? lOffX - 2 : -2) + 'px;top:' + (lOffY < 0 ? lOffY - 2 : -2) + 'px;pointer-events:none;overflow:visible;';
+      var ln = document.createElementNS(svgNS, 'line');
+      ln.setAttribute('x1', ox); ln.setAttribute('y1', oy);
+      ln.setAttribute('x2', ox + lOffX); ln.setAttribute('y2', oy + lOffY);
+      ln.setAttribute('stroke', 'rgba(255,255,255,0.25)');
+      ln.setAttribute('stroke-width', '1');
+      ln.setAttribute('stroke-dasharray', '3,2');
+      sv.appendChild(ln);
+      pin.appendChild(sv);
+    }
+
+    // Stem (short vertical above dot)
     var stem = document.createElement('div');
     stem.className = 'pstem';
-    stem.style.height = sh + 'px';
-
-    var dot = document.createElement('div');
-    dot.className = 'pdot';
-
-    pin.appendChild(lbl);
+    stem.style.cssText = 'position:absolute;left:0px;top:' + (-sh) + 'px;height:' + sh + 'px;width:1px;';
     pin.appendChild(stem);
-    pin.appendChild(dot);
 
     // Use closure to capture s - use touchend for iOS (click suppressed by preventDefault)
     (function(spot) {
@@ -518,109 +585,123 @@ function renderAR() {
     })(s);
 
     ar.appendChild(pin);
-  }
+  } // end visible loop
 
   // Labels centered via CSS transform
 
   document.getElementById('ct').textContent = count + ' スポットを表示中';
 }
 
-// ── RENDER MAP ──
+// ── RENDER MAP (Leaflet) ──
+var leafletMap = null;
+var leafletMarkers = [];
+
+// Approximate lat/lon from bearing and distance
+function bearingDistToLatLon(bearing, distKm) {
+  var R = 6371;
+  var lat1 = BASE_LAT * Math.PI / 180;
+  var lon1 = BASE_LON * Math.PI / 180;
+  var brng = bearing * Math.PI / 180;
+  var d = distKm / R;
+  var lat2 = Math.asin(Math.sin(lat1)*Math.cos(d) + Math.cos(lat1)*Math.sin(d)*Math.cos(brng));
+  var lon2 = lon1 + Math.atan2(Math.sin(brng)*Math.sin(d)*Math.cos(lat1), Math.cos(d)-Math.sin(lat1)*Math.sin(lat2));
+  return [lat2 * 180/Math.PI, lon2 * 180/Math.PI];
+}
+
+var BASE_LAT = 35.464806, BASE_LON = 135.343583;
+var SPOT_COORDS = SPOTS.map(function(s) {
+  return bearingDistToLatLon(s.b, s.dist);
+});
+
+var LAYER_COLORS = {近景:'#5bc8ff', 中景:'#3de8c8', 遠景:'#a78bfa', 超遠景:'#f472b6'};
+
 function renderMap() {
-  getSize();
   var mv = document.getElementById('mapview');
-  mv.innerHTML = '';
 
-  var lats = SPOTS.map(function(s){return s.lat||0;}).filter(Boolean).concat([35.464806]);
-  var lons = SPOTS.map(function(s){return s.lon||0;}).filter(Boolean).concat([135.343583]);
+  if(!leafletMap) {
+    // Create map container
+    var mapDiv = document.createElement('div');
+    mapDiv.id = 'leaflet-map';
+    mv.appendChild(mapDiv);
 
-  // Use bearing-based approximate positions
-  var pad = 50;
-  var cx = W / 2, cy = H * 0.45;
-  var scale = Math.min(W, H) * 0.35;
-
-  var svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.setAttribute('width', W);
-  svg.setAttribute('height', H);
-  svg.style.cssText = 'position:absolute;inset:0;';
-
-  // background
-  var rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-  rect.setAttribute('width', W); rect.setAttribute('height', H);
-  rect.setAttribute('fill', '#07111f');
-  svg.appendChild(rect);
-
-  // range circles
-  var rings = [
-    {km:5, color:'rgba(91,200,255,.15)'},
-    {km:15,color:'rgba(61,232,200,.12)'},
-    {km:40,color:'rgba(167,139,250,.10)'},
-    {km:150,color:'rgba(244,114,182,.08)'}
-  ];
-  rings.forEach(function(r) {
-    var rad = (r.km / 150) * scale;
-    var c = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',rad);
-    c.setAttribute('fill','none');
-    c.setAttribute('stroke',r.color);
-    c.setAttribute('stroke-width','1');
-    c.setAttribute('stroke-dasharray','4,4');
-    svg.appendChild(c);
-
-    var t = document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttribute('x', cx + rad - 4); t.setAttribute('y', cy - 4);
-    t.setAttribute('fill', r.color); t.setAttribute('font-size','9');
-    t.setAttribute('text-anchor','end');
-    t.textContent = r.km + 'km';
-    svg.appendChild(t);
-  });
-
-  // spots
-  var cols = {近景:'#5bc8ff',中景:'#3de8c8',遠景:'#a78bfa',超遠景:'#f472b6'};
-  SPOTS.forEach(function(s) {
-    if(!activeL[s.layer]) return;
-    var rad = (s.dist / 150) * scale;
-    var angle = (s.b - 90) * Math.PI / 180;
-    var sx = cx + rad * Math.cos(angle);
-    var sy = cy + rad * Math.sin(angle);
-
-    // line
-    var line = document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1',cx); line.setAttribute('y1',cy);
-    line.setAttribute('x2',sx); line.setAttribute('y2',sy);
-    line.setAttribute('stroke', cols[s.layer] || '#fff');
-    line.setAttribute('stroke-width','0.5');
-    line.setAttribute('opacity','0.2');
-    svg.appendChild(line);
-
-    // dot
-    var dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    dot.setAttribute('cx',sx); dot.setAttribute('cy',sy); dot.setAttribute('r','5');
-    dot.setAttribute('fill', cols[s.layer] || '#fff');
-    dot.setAttribute('opacity','0.85');
-    dot.style.cursor = 'pointer';
-    dot.addEventListener('click', function(e) {
-      e.stopPropagation();
-      openPanel(s);
+    // Init Leaflet
+    leafletMap = L.map('leaflet-map', {
+      center: [BASE_LAT, BASE_LON],
+      zoom: 11,
+      zoomControl: true,
+      attributionControl: false
     });
-    svg.appendChild(dot);
+
+    // Dark tile layer (OpenStreetMap)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 18,
+      subdomains: 'abcd'
+    }).addTo(leafletMap);
+
+    // Tower marker
+    var towerIcon = L.divIcon({
+      html: '<div style="width:14px;height:14px;border-radius:50%;background:#ffd740;border:3px solid #fff;box-shadow:0 0 12px rgba(255,215,64,.7);"></div>',
+      className: '',
+      iconSize: [14,14],
+      iconAnchor: [7,7]
+    });
+    L.marker([BASE_LAT, BASE_LON], {icon: towerIcon})
+      .bindTooltip('五老スカイタワー', {permanent:true, direction:'top', className:'tower-tip', offset:[0,-8]})
+      .addTo(leafletMap);
+
+    // Add tooltip CSS
+    var style = document.createElement('style');
+    style.textContent = '.tower-tip{background:rgba(0,0,0,.75);border:1px solid #ffd740;color:#ffd740;font-size:11px;font-weight:700;border-radius:8px;padding:2px 8px;white-space:nowrap;box-shadow:none;}.tower-tip::before{display:none;}';
+    document.head.appendChild(style);
+  }
+
+  // Clear old markers
+  leafletMarkers.forEach(function(m){ leafletMap.removeLayer(m); });
+  leafletMarkers = [];
+
+  // Add spot markers
+  SPOTS.forEach(function(s, i) {
+    if(!activeL[s.layer]) return;
+    var coords = SPOT_COORDS[i];
+    var color = LAYER_COLORS[s.layer] || '#fff';
+
+    var icon = L.divIcon({
+      html: '<div style="width:10px;height:10px;border-radius:50%;background:'+color+';border:2px solid rgba(255,255,255,.6);box-shadow:0 0 8px '+color+';"></div>',
+      className: '',
+      iconSize: [10,10],
+      iconAnchor: [5,5]
+    });
+
+    var marker = L.marker(coords, {icon: icon}).addTo(leafletMap);
+    marker.on('click', function() { openPanel(s); });
+    marker.bindTooltip(getName(s), {direction:'top', offset:[0,-6], className:'spot-tip-'+s.layer});
+    leafletMarkers.push(marker);
   });
 
-  // tower
-  var tc = document.createElementNS('http://www.w3.org/2000/svg','circle');
-  tc.setAttribute('cx',cx); tc.setAttribute('cy',cy); tc.setAttribute('r','8');
-  tc.setAttribute('fill','#ffd740');
-  tc.setAttribute('stroke','#fff'); tc.setAttribute('stroke-width','2');
-  svg.appendChild(tc);
+  // Add range circles
+  var ringDefs = [{km:5,color:'#5bc8ff'},{km:15,color:'#3de8c8'},{km:40,color:'#a78bfa'},{km:150,color:'#f472b6'}];
+  ringDefs.forEach(function(r) {
+    var circle = L.circle([BASE_LAT, BASE_LON], {
+      radius: r.km * 1000,
+      color: r.color,
+      weight: 1,
+      opacity: 0.2,
+      fillOpacity: 0,
+      dashArray: '4,4'
+    }).addTo(leafletMap);
+    leafletMarkers.push(circle);
+  });
 
-  var tl = document.createElementNS('http://www.w3.org/2000/svg','text');
-  tl.setAttribute('x',cx); tl.setAttribute('y', cy - 14);
-  tl.setAttribute('fill','#ffd740'); tl.setAttribute('font-size','11');
-  tl.setAttribute('font-weight','700'); tl.setAttribute('text-anchor','middle');
-  tl.textContent = '五老スカイタワー';
-  svg.appendChild(tl);
+  // Add tooltip styles for spots
+  var tipStyle = document.createElement('style');
+  tipStyle.textContent = [
+    '.spot-tip-近景,.spot-tip-中景,.spot-tip-遠景,.spot-tip-超遠景{background:rgba(0,0,0,.75);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:11px;border-radius:8px;padding:2px 8px;white-space:nowrap;box-shadow:none;}',
+    '.spot-tip-近景::before,.spot-tip-中景::before,.spot-tip-遠景::before,.spot-tip-超遠景::before{display:none;}'
+  ].join('');
+  document.head.appendChild(tipStyle);
 
-  mv.appendChild(svg);
+  // Invalidate size after show (Leaflet needs this)
+  setTimeout(function(){ leafletMap.invalidateSize(); }, 100);
 }
 
 // ── PANEL ──
