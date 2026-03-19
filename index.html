@@ -764,47 +764,86 @@ let autoPan=true; setTimeout(()=>autoPan=false,10000);
 // INIT
 // ══════════════════════════════════════════
 function setupGyroButton() {
-  const gyroBtn = document.createElement('button');
-  gyroBtn.id = 'gyro-btn';
-  gyroBtn.textContent = '📡 向き検知をONにする';
-  gyroBtn.setAttribute('style', [
+  // Overlay wrapper covering full screen
+  var overlay = document.createElement('div');
+  overlay.id = 'gyro-overlay';
+  overlay.setAttribute('style', [
     'position:fixed',
-    'bottom:90px',
-    'left:50%',
-    'transform:translateX(-50%)',
-    'z-index:9999',
-    'padding:12px 24px',
-    'border-radius:28px',
+    'top:0','left:0','right:0','bottom:0',
+    'z-index:99999',
+    'display:flex',
+    'flex-direction:column',
+    'align-items:center',
+    'justify-content:center',
+    'background:rgba(0,10,30,0.85)'
+  ].join(';'));
+
+  var msg = document.createElement('div');
+  msg.textContent = '向きセンサーの使用を許可してください';
+  msg.setAttribute('style','color:white;font-size:16px;margin-bottom:24px;text-align:center;padding:0 20px;line-height:1.6;');
+
+  var btn = document.createElement('button');
+  btn.textContent = '向き検知をONにする';
+  btn.setAttribute('style', [
+    'padding:16px 40px',
+    'border-radius:32px',
     'border:2px solid #5bc8ff',
     'background:#001428',
     'color:#5bc8ff',
-    'font-size:15px',
+    'font-size:18px',
     'font-weight:700',
     'cursor:pointer',
     'white-space:nowrap',
-    'display:block'
+    '-webkit-appearance:none',
+    'appearance:none'
   ].join(';'));
-  document.body.appendChild(gyroBtn);
 
-  gyroBtn.addEventListener('click', function() {
+  var skip = document.createElement('button');
+  skip.textContent = 'スキップ（手動スワイプで操作）';
+  skip.setAttribute('style', [
+    'margin-top:16px',
+    'padding:10px 24px',
+    'border-radius:20px',
+    'border:1px solid rgba(255,255,255,0.3)',
+    'background:transparent',
+    'color:rgba(255,255,255,0.6)',
+    'font-size:13px',
+    'cursor:pointer',
+    '-webkit-appearance:none',
+    'appearance:none'
+  ].join(';'));
+
+  overlay.appendChild(msg);
+  overlay.appendChild(btn);
+  overlay.appendChild(skip);
+  document.body.appendChild(overlay);
+
+  function removeOverlay() {
+    overlay.parentNode && overlay.parentNode.removeChild(overlay);
+  }
+
+  btn.addEventListener('click', function() {
     if(typeof DeviceOrientationEvent !== 'undefined' &&
        typeof DeviceOrientationEvent.requestPermission === 'function') {
       DeviceOrientationEvent.requestPermission().then(function(state) {
         if(state === 'granted') {
           startGyro();
-          gyroBtn.parentNode && gyroBtn.parentNode.removeChild(gyroBtn);
+          removeOverlay();
         } else {
-          gyroBtn.textContent = '許可してください';
+          msg.textContent = '許可が拒否されました。手動スワイプで操作できます。';
+          btn.style.display = 'none';
         }
       }).catch(function() {
         startGyro();
-        gyroBtn.parentNode && gyroBtn.parentNode.removeChild(gyroBtn);
+        removeOverlay();
       });
     } else {
       startGyro();
-      gyroBtn.parentNode && gyroBtn.parentNode.removeChild(gyroBtn);
+      removeOverlay();
     }
   });
+
+  skip.addEventListener('click', removeOverlay);
 }
 
 function init() {
