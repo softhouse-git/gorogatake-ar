@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>五老スカイタワー AR展望ガイド</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Sans:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Syne:wght@400;700;800&display=swap');
+
+:root {
+  --glass: rgba(255,255,255,0.10);
+  --glass-b: rgba(255,255,255,0.22);
+  --blur: blur(18px);
+  --c0: #fff;
+  --c1: rgba(255,255,255,0.7);
+  --c2: rgba(255,255,255,0.4);
+  --blue: #5bc8ff;
+  --teal: #3de8c8;
+  --purple: #a78bfa;
+  --pink: #f472b6;
+  --near: #5bc8ff;
+  --mid: #3de8c8;
+  --far: #a78bfa;
+  --ultra: #f472b6;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:'Noto Sans JP','Noto Sans',sans-serif;}
+
+/* ── SKY BG ── */
+#sky{position:fixed;inset:0;background:linear-gradient(175deg,#060d1a 0%,#0a1e38 20%,#123358 40%,#1b567a 55%,#2a7a6a 68%,#1e5440 80%,#0f2e20 100%);overflow:hidden;}
+.sky-star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite var(--delay,0s);}
+@keyframes twinkle{0%,100%{opacity:var(--op,.3)}50%{opacity:.05}}
+.haze{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(91,200,255,.08),transparent 70%);}
+.horizon-line{position:absolute;bottom:36%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(91,200,255,.35),transparent);}
+.sea{position:absolute;bottom:0;left:0;right:0;height:36%;background:linear-gradient(180deg,rgba(20,60,110,.7),rgba(8,25,55,.95));overflow:hidden;}
+.sea::after{content:'';position:absolute;top:0;left:-100%;width:300%;height:100%;background:repeating-linear-gradient(90deg,transparent 0px,rgba(91,200,255,.03) 2px,transparent 4px);animation:seaMove 10s linear infinite;}
+@keyframes seaMove{to{transform:translateX(33.3%)}}
+
+/* ── SCAN LINE ── */
+#scan{position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--teal),transparent);animation:scanDown 7s ease-in-out infinite;z-index:5;pointer-events:none;}
+@keyframes scanDown{0%{top:0;opacity:0}5%{opacity:.5}95%{opacity:.2}100%{top:100vh;opacity:0}}
+
+/* ── HUD TOP ── */
+#hud{position:fixed;top:0;left:0;right:0;padding:14px 18px 10px;background:linear-gradient(180deg,rgba(0,0,0,.55),transparent);display:flex;justify-content:space-between;align-items:flex-start;z-index:40;pointer-events:none;}
+.hud-left{pointer-events:auto;}
+.hud-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.12em;color:var(--c1);text-transform:uppercase;}
+.hud-sub{font-size:10px;color:var(--c2);letter-spacing:.08em;margin-top:1px;}
+.hud-right{text-align:right;pointer-events:auto;}
+.hud-deg{font-family:'Syne',sans-serif;font-size:32px;font-weight:400;line-height:1;letter-spacing:-.03em;}
+.hud-dir{font-size:10px;color:var(--c2);letter-spacing:.1em;margin-top:2px;}
+
+/* ── LANG SWITCHER ── */
+#lang-sw{position:fixed;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:41;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:3px;}
+.lang-btn{padding:4px 12px;border-radius:14px;border:none;background:transparent;color:var(--c2);font-size:11px;font-weight:500;cursor:pointer;transition:all .2s;letter-spacing:.04em;}
+.lang-btn.active{background:rgba(91,200,255,.2);color:var(--blue);border:1px solid rgba(91,200,255,.3);}
+
+/* ── VIEW SWITCHER ── */
+#view-sw{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);display:flex;gap:0;z-index:50;background:rgba(0,0,0,.5);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.18);border-radius:24px;overflow:hidden;}
+.view-btn{padding:9px 22px;border:none;background:transparent;color:var(--c2);font-size:12px;font-family:'Noto Sans JP','Noto Sans',sans-serif;font-weight:500;cursor:pointer;transition:all .25s;letter-spacing:.04em;display:flex;align-items:center;gap:6px;}
+.view-btn.active{background:rgba(91,200,255,.18);color:var(--blue);}
+.view-btn svg{width:14px;height:14px;fill:currentColor;}
+
+/* ── LAYER FILTER ── */
+#filters{position:fixed;top:72px;right:14px;display:flex;flex-direction:column;gap:5px;z-index:40;}
+.f-btn{padding:5px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.4);backdrop-filter:blur(8px);color:var(--c2);font-size:10px;font-family:inherit;cursor:pointer;transition:all .2s;white-space:nowrap;text-align:right;letter-spacing:.03em;}
+.f-btn.active{color:#fff;background:rgba(20,50,90,.6);}
+.f-btn[data-l="近景"].active,.f-btn[data-l="Near"].active,.f-btn[data-l="近景C"].active{border-color:var(--near);color:var(--near);}
+.f-btn[data-l="中景"].active,.f-btn[data-l="Mid"].active,.f-btn[data-l="中景C"].active{border-color:var(--mid);color:var(--mid);}
+.f-btn[data-l="遠景"].active,.f-btn[data-l="Far"].active,.f-btn[data-l="遠景C"].active{border-color:var(--far);color:var(--far);}
+.f-btn[data-l="超遠景"].active,.f-btn[data-l="Ultra"].active,.f-btn[data-l="超遠景C"].active{border-color:var(--ultra);color:var(--ultra);}
+
+/* ── AR VIEW ── */
+#ar-view{position:fixed;inset:0;z-index:10;}
+.pin{position:absolute;transform:translateX(-50%);cursor:pointer;transition:opacity .3s;animation:pinFloat var(--pd,3s) ease-in-out infinite var(--pdelay,0s);}
+@keyframes pinFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
+.pin-label{backdrop-filter:blur(10px);border-radius:20px;padding:5px 13px;font-size:12px;font-weight:500;white-space:nowrap;letter-spacing:.02em;box-shadow:0 2px 14px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);transition:all .25s;background:rgba(0,0,0,.72);}
+.pin:hover .pin-label{transform:scale(1.06);}
+.pin-stem{margin:0 auto;width:1px;opacity:.6;}
+.pin-dot{width:7px;height:7px;border-radius:50%;margin:3px auto 0;box-shadow:0 0 10px currentColor;}
+.pin.l-近景 .pin-label,.pin.l-Near .pin-label,.pin.l-近景C .pin-label{color:var(--near);border-color:rgba(91,200,255,.35);}
+.pin.l-中景 .pin-label,.pin.l-Mid .pin-label,.pin.l-中景C .pin-label{color:var(--mid);border-color:rgba(61,232,200,.35);}
+.pin.l-遠景 .pin-label,.pin.l-Far .pin-label,.pin.l-遠景C .pin-label{color:var(--purple);border-color:rgba(167,139,250,.35);}
+.pin.l-超遠景 .pin-label,.pin.l-Ultra .pin-label,.pin.l-超遠景C .pin-label{color:var(--pink);border-color:rgba(244,114,182,.35);}
+.pin.l-近景 .pin-dot,.pin.l-Near .pin-dot,.pin.l-近景C .pin-dot{background:var(--near);color:var(--near);}
+.pin.l-中景 .pin-dot,.pin.l-Mid .pin-dot,.pin.l-中景C .pin-dot{background:var(--mid);color:var(--mid);}
+.pin.l-遠景 .pin-dot,.pin.l-Far .pin-dot,.pin.l-遠景C .pin-dot{background:var(--purple);color:var(--purple);}
+.pin.l-超遠景 .pin-dot,.pin.l-Ultra .pin-dot,.pin.l-超遠景C .pin-dot{background:var(--pink);color:var(--pink);}
+.pin.l-近景 .pin-stem,.pin.l-Near .pin-stem,.pin.l-近景C .pin-stem{background:linear-gradient(180deg,var(--near),transparent);}
+.pin.l-中景 .pin-stem,.pin.l-Mid .pin-stem,.pin.l-中景C .pin-stem{background:linear-gradient(180deg,var(--mid),transparent);}
+.pin.l-遠景 .pin-stem,.pin.l-Far .pin-stem,.pin.l-遠景C .pin-stem{background:linear-gradient(180deg,var(--purple),transparent);}
+.pin.l-超遠景 .pin-stem,.pin.l-Ultra .pin-stem,.pin.l-超遠景C .pin-stem{background:linear-gradient(180deg,var(--pink),transparent);}
+
+/* ── MAP VIEW ── */
+#map-view{position:fixed;inset:0;z-index:10;display:none;overflow:hidden;}
+#map-view.show{display:block;}
+#map-canvas{width:100%;height:100%;background:#07111f;}
+
+/* ── DETAIL PANEL ── */
+#panel{position:fixed;bottom:0;left:0;right:0;background:rgba(4,12,28,.88);backdrop-filter:blur(26px);border-top:1px solid rgba(255,255,255,.18);transform:translateY(100%);transition:transform .4s cubic-bezier(.16,1,.3,1);z-index:60;max-height:60vh;overflow-y:auto;}
+#panel.open{transform:translateY(0);}
+.p-handle{width:36px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:14px auto 18px;}
+.p-body{padding:0 20px 48px;}
+.p-img{width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:16px;background:linear-gradient(135deg,#0a2040,#0d3060);}
+.p-img-placeholder{width:100%;height:160px;border-radius:12px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;font-size:40px;background:linear-gradient(135deg,rgba(91,200,255,.1),rgba(61,232,200,.08));border:1px solid rgba(255,255,255,.08);}
+.p-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.p-name{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;line-height:1.25;flex:1;}
+.p-close{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;margin-left:10px;}
+.p-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.tag{font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,.08);color:var(--c1);letter-spacing:.04em;}
+.tag.hl{background:rgba(91,200,255,.14);color:var(--blue);border:1px solid rgba(91,200,255,.28);}
+.p-desc{font-size:13.5px;line-height:1.85;color:var(--c1);margin-bottom:18px;}
+.p-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);}
+.stat{text-align:center;}
+.stat-v{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--blue);line-height:1;margin-bottom:3px;}
+.stat-l{font-size:10px;color:var(--c2);letter-spacing:.07em;}
+
+/* ── SPOT COUNT ── */
+#spot-ct{position:fixed;bottom:78px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--c2);letter-spacing:.07em;z-index:35;pointer-events:none;white-space:nowrap;}
+
+/* ── SWIPE HINT ── */
+.hint{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--c2);display:flex;align-items:center;gap:6px;animation:fadeHint 5s ease-in-out 2s both;letter-spacing:.06em;pointer-events:none;z-index:35;}
+@keyframes fadeHint{0%,100%{opacity:0}20%,80%{opacity:1}}
+.ha{animation:bx 1s ease-in-out infinite;}
+@keyframes bx{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+
+/* ── MAP OVERLAY SPOTS ── */
+.map-spot{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:15;}
+.map-dot{width:10px;height:10px;border-radius:50%;border:2px solid rgba(255,255,255,.6);transition:transform .2s;}
+.map-spot:hover .map-dot{transform:scale(1.6);}
+.map-spot-label{position:absolute;left:50%;transform:translateX(-50%);top:-22px;font-size:10px;white-space:nowrap;background:rgba(0,0,0,.65);padding:2px 7px;border-radius:10px;pointer-events:none;opacity:0;transition:opacity .2s;}
+.map-spot:hover .map-spot-label{opacity:1;}
+.map-spot.ml-近景 .map-dot,.map-spot.ml-Near .map-dot{background:var(--near);}
+.map-spot.ml-中景 .map-dot,.map-spot.ml-Mid .map-dot{background:var(--mid);}
+.map-spot.ml-遠景 .map-dot,.map-spot.ml-Far .map-dot{background:var(--far);}
+.map-spot.ml-超遠景 .map-dot,.map-spot.ml-Ultra .map-dot{background:var(--ultra);}
+
+/* tower marker */
+.tower-marker{position:absolute;transform:translate(-50%,-50%);z-index:20;pointer-events:none;}
+.tower-dot{width:16px;height:16px;border-radius:50%;background:rgba(255,220,80,.9);border:3px solid #fff;box-shadow:0 0 20px rgba(255,220,80,.6);}
+.tower-label{position:absolute;left:50%;transform:translateX(-50%);top:-26px;font-size:11px;font-weight:700;white-space:nowrap;color:#ffd740;background:rgba(0,0,0,.7);padding:2px 8px;border-radius:10px;}
+
+/* map grid lines */
+.map-grid{position:absolute;inset:0;pointer-events:none;background:
+  repeating-linear-gradient(0deg,rgba(91,200,255,.04) 0px,transparent 1px,transparent 60px,rgba(91,200,255,.04) 61px),
+  repeating-linear-gradient(90deg,rgba(91,200,255,.04) 0px,transparent 1px,transparent 60px,rgba(91,200,255,.04) 61px);}
+
+/* range circles */
+.range-circle{position:absolute;border-radius:50%;border:1px solid rgba(91,200,255,.12);transform:translate(-50%,-50%);pointer-events:none;}
+.range-label{position:absolute;font-size:9px;color:rgba(91,200,255,.4);letter-spacing:.06em;}
+
+/* map compass */
+.map-compass{position:fixed;top:80px;left:16px;width:44px;height:44px;z-index:41;display:none;}
+.map-compass.show{display:block;}
+.mc-outer{width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);position:relative;}
+.mc-n{position:absolute;top:50%;left:50%;width:2px;height:14px;transform-origin:bottom center;transform:translateX(-50%) rotate(0deg);background:linear-gradient(180deg,var(--blue),transparent);}
+.mc-label{position:absolute;top:3px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;color:var(--blue);}
+</style>
+</head>
+<body>
+
+<!-- Sky -->
+<div id="sky">
+  <div class="haze" style="width:400px;height:200px;top:15%;left:30%"></div>
+  <div class="haze" style="width:300px;height:150px;top:25%;right:20%"></div>
+  <div class="horizon-line"></div>
+  <div class="sea"></div>
+</div>
+<div id="scan"></div>
+
+<!-- Stars -->
+<script>
+(function(){
+  const sky=document.getElementById('sky');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');
+    s.className='sky-star';
+    const sz=Math.random()*2+.5;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*55}%;left:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${-Math.random()*5}s;--op:${.1+Math.random()*.5}`;
+    sky.appendChild(s);
+  }
+})();
+</script>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-left">
+    <div class="hud-title" id="hud-title">五老スカイタワー</div>
+    <div class="hud-sub" id="hud-sub">AR LANDSCAPE GUIDE</div>
+  </div>
+  <div class="hud-right">
+    <div class="hud-deg" id="hud-deg">30°</div>
+    <div class="hud-dir" id="hud-dir">北東</div>
+  </div>
+</div>
+
+<!-- Language switcher -->
+<div id="lang-sw">
+  <button class="lang-btn active" data-lang="ja">日本語</button>
+  <button class="lang-btn" data-lang="en">EN</button>
+  <button class="lang-btn" data-lang="zh">中文</button>
+</div>
+
+<!-- Layer filter -->
+<div id="filters"></div>
+
+<!-- Map compass -->
+<div class="map-compass" id="map-compass">
+  <div class="mc-outer">
+    <div class="mc-label">N</div>
+    <div class="mc-n"></div>
+  </div>
+</div>
+
+<!-- AR View -->
+<div id="ar-view"></div>
+
+<!-- Map View -->
+<div id="map-view">
+  <canvas id="map-canvas"></canvas>
+</div>
+
+<!-- Spot count -->
+<div id="spot-ct"></div>
+
+<!-- Swipe hint -->
+<div class="hint" id="swipe-hint">
+  <span class="ha" style="transform:rotate(180deg)">→</span>
+  <span id="hint-text">スワイプして探索</span>
+  <span class="ha">→</span>
+</div>
+
+<!-- View switcher -->
+<div id="view-sw">
+  <button class="view-btn active" id="btn-ar" data-view="ar">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+    <span id="vbtn-ar">ARビュー</span>
+  </button>
+  <button class="view-btn" id="btn-map" data-view="map">
+    <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+    <span id="vbtn-map">地図ビュー</span>
+  </button>
+</div>
+
+<!-- Detail Panel -->
+<div id="panel">
+  <div class="p-handle"></div>
+  <div class="p-body">
+    <div id="p-img-wrap"></div>
+    <div class="p-top">
+      <div class="p-name" id="p-name"></div>
+      <button class="p-close" id="p-close">✕</button>
+    </div>
+    <div class="p-tags" id="p-tags"></div>
+    <div class="p-desc" id="p-desc"></div>
+    <div class="p-stats" id="p-stats"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// SPOT DATA
+// ══════════════════════════════════════════
+const BASE = { lat:35.464806, lon:135.343583 };
+
+const SPOTS = [
+  { id:1, layer:'近景', cat:'旧軍港', dist:3.35, bearing:57.5, lat:35.480998, lon:135.374801, emoji:'⚓',
+    ja:{ name:'海上自衛隊北吸桟橋', desc:'イージス艦などの護衛艦が停泊する海上自衛隊の桟橋。舞鶴の海軍都市としての歴史を今に伝える現役の軍港施設。'},
+    en:{ name:'JMSDF Kitasui Pier', desc:'A maritime self-defense force pier where Aegis destroyers berth. It embodies Maizuru's centuries-old naval heritage on the Sea of Japan.'},
+    zh:{ name:'海上自卫队北吸泊岸', desc:'停靠神盾舰等护卫舰的海上自卫队栈桥。见证了舞鹤作为海军城市的历史。'} },
+  { id:2, layer:'近景', cat:'旧軍港', dist:2.75, bearing:66.3, lat:35.474773, lon:135.371432, emoji:'🏛',
+    ja:{ name:'舞鶴地方総監部／海軍記念館', desc:'旧海軍の赤れんが建築が残る施設。明治期の海軍拡張政策の中で建設され、近代日本の海軍史を物語る貴重な遺構。'},
+    en:{ name:'Maizuru Naval Museum', desc:'Red-brick naval buildings from the Meiji era house this museum. A precious testament to Japan's modern naval expansion policy.'},
+    zh:{ name:'舞鹤地方总监部/海军纪念馆', desc:'保留有旧海军红砖建筑的设施。明治时期建造，讲述近代日本海军史的珍贵遗迹。'} },
+  { id:3, layer:'近景', cat:'旧軍港', dist:3.95, bearing:73.7, lat:35.474756, lon:135.385441, emoji:'🧱',
+    ja:{ name:'舞鶴赤れんがパーク', desc:'明治35年築の旧海軍倉庫群。国の重要文化財に指定された12棟のれんが造り倉庫が立ち並ぶ、舞鶴の象徴的な景観。'},
+    en:{ name:'Maizuru Red Brick Park', desc:'12 Meiji-era naval warehouses designated as Important Cultural Properties. Maizuru's most iconic skyline, bathed in warm brick-red hues.'},
+    zh:{ name:'舞鹤红砖公园', desc:'建于明治35年的旧海军仓库群。被指定为国家重要文化财产的12栋红砖仓库并排而立。'} },
+  { id:4, layer:'近景', cat:'産業', dist:3.39, bearing:55.2, lat:35.482205, lon:135.374298, emoji:'🏗',
+    ja:{ name:'ジャパンマリンユナイテッド', desc:'造船の街・舞鶴を代表する大型造船所。日本の造船技術の粋を集めた巨大クレーンが港の景観を特徴づけている。'},
+    en:{ name:'Japan Marine United (Shipyard)', desc:'A major shipyard defining Maizuru's industrial identity. The towering cranes are a signature element of the port skyline.'},
+    zh:{ name:'日本海洋联合造船厂', desc:'代表造船城市舞鹤的大型造船厂。汇集日本造船技术精华的巨型起重机构成了港口的特色景观。'} },
+  { id:5, layer:'近景', cat:'歴史', dist:1.63, bearing:240, lat:35.457478, lon:135.328022, emoji:'🚣',
+    ja:{ name:'吉原入江（日本のベニス）', desc:'入江に舟屋が並ぶ独特の景観が、イタリア・ヴェネツィアを想起させる地区。京都府の景観資産に指定されている。'},
+    en:{ name:'Yoshiwara Inlet – "Venice of Japan"', desc:'Boathouses lining this tranquil inlet evoke the canals of Venice, Italy. Designated as a Kyoto Prefecture landscape heritage site.'},
+    zh:{ name:'吉原入江（日本威尼斯）', desc:'沿入江排列的船屋景观令人联想到意大利威尼斯，被指定为京都府景观资产。'} },
+  { id:6, layer:'近景', cat:'インフラ', dist:6.35, bearing:35.7, lat:35.511186, lon:135.384587, emoji:'🌉',
+    ja:{ name:'舞鶴クレインブリッジ', desc:'全長735mの斜張橋。引揚港・舞鶴の平和の歴史を象徴する、鶴が羽を広げた優美なフォルムが特徴。'},
+    en:{ name:'Maizuru Crane Bridge', desc:'A 735m cable-stayed bridge whose soaring silhouette echoes a crane spreading its wings—a symbol of Maizuru's post-war peace.'},
+    zh:{ name:'舞鹤起重桥', desc:'全长735米的斜拉桥。鹤展翅的优美造型象征着引扬港舞鹤的和平历史。'} },
+  { id:7, layer:'近景', cat:'観光', dist:3.09, bearing:238.6, lat:35.450319, lon:135.314508, emoji:'🦀',
+    ja:{ name:'舞鶴港とれとれセンター', desc:'日本海の新鮮な海産物が並ぶ市場。舞鶴湾で水揚げされたカニ、ブリ、サバなど地元の旬の味覚が直売されている。'},
+    en:{ name:'Maizuru Port Toretore Center', desc:'A lively fish market selling the Sea of Japan's freshest catch—crab, yellowtail, mackerel—straight from the boats of Maizuru Bay.'},
+    zh:{ name:'舞鹤港海鲜市场', desc:'陈列着日本海新鲜海产品的市场。舞鹤湾捕获的螃蟹、鰤鱼、鲭鱼等当季美味直接出售。'} },
+  { id:8, layer:'近景', cat:'島', dist:3.39, bearing:31.6, lat:35.49722, lon:135.36806, emoji:'🏝',
+    ja:{ name:'蛇島', desc:'舞鶴湾内に浮かぶ小島。旧海軍の遺構が残り、湾の要衝として軍事的に重要な役割を果たした歴史的な島。'},
+    en:{ name:'Jajima Island', desc:'A tiny island in Maizuru Bay retaining old naval structures. Its strategic position once made it a vital military chokepoint.'},
+    zh:{ name:'蛇岛', desc:'漂浮在舞鹤湾内的小岛。保留有旧海军遗迹，曾在军事上发挥重要作用的历史性岛屿。'} },
+  { id:9, layer:'中景', cat:'港湾', dist:4.76, bearing:66.9, lat:35.481595, lon:135.39189, emoji:'⛴',
+    ja:{ name:'舞鶴港フェリーターミナル', desc:'新日本海フェリーが発着する重要港湾。舞鶴〜小樽・敦賀便が運航し、北海道への玄関口として機能している。'},
+    en:{ name:'Maizuru Port Ferry Terminal', desc:'Shin Nihonkai Ferry connects Maizuru to Otaru and Tsuruga, making this terminal a key gateway to Hokkaido via the Sea of Japan.'},
+    zh:{ name:'舞鹤港轮渡码头', desc:'新日本海轮渡停靠的重要港湾设施。运营舞鹤至小樽、敦贺航线，是通往北海道的门户。'} },
+  { id:10, layer:'中景', cat:'歴史', dist:6.91, bearing:44, lat:35.5095, lon:135.39667, emoji:'🕊',
+    ja:{ name:'舞鶴引揚記念館', desc:'戦後の海外引揚げを伝える国立記念館。ユネスコ「世界の記憶」に登録された資料を収蔵し、平和を伝え続けている。'},
+    en:{ name:'Maizuru Repatriation Memorial Museum', desc:'A national museum housing UNESCO Memory of the World materials on post-war repatriation—a moving testament to peace and homecoming.'},
+    zh:{ name:'舞鹤归国纪念馆', desc:'传达战后海外归国者经历的国立纪念馆。收藏被登录为联合国教科文组织"世界记忆"的资料。'} },
+  { id:11, layer:'中景', cat:'文化', dist:11.95, bearing:72.3, lat:35.497331, lon:135.46933, emoji:'⛩',
+    ja:{ name:'松尾寺', desc:'西国三十三所第29番札所。奈良時代創建の古刹で、ボタンの名所としても知られ、全国から多くの巡礼者が訪れる。'},
+    en:{ name:'Matsuodera Temple', desc:'The 29th pilgrimage site of the Saigoku Kannon Circuit, founded in the Nara Period. Famous for its spectacular peony blossoms in spring.'},
+    zh:{ name:'松尾寺', desc:'西国三十三所第29番礼所。奈良时代创建的古刹，以牡丹而闻名，全国各地的巡礼者纷纷到访。'} },
+  { id:12, layer:'中景', cat:'島', dist:3.45, bearing:359.2, lat:35.49583, lon:135.34306, emoji:'🌿',
+    ja:{ name:'戸島（天然記念物）', desc:'舞鶴湾の北端に位置する小島。希少な植生が評価され、京都府の天然記念物に指定されている自然の宝庫。'},
+    en:{ name:'Tojima Island (Natural Monument)', desc:'A small island at the northern tip of Maizuru Bay. Designated as a Kyoto Prefecture Natural Monument for its rare coastal vegetation.'},
+    zh:{ name:'户岛（天然纪念物）', desc:'位于舞鹤湾北端的小岛。因其珍稀植被被评定为京都府天然纪念物。'} },
+  { id:13, layer:'中景', cat:'自然', dist:7.2, bearing:315.5, lat:35.510952, lon:135.287853, emoji:'🌊',
+    ja:{ name:'由良川河口', desc:'丹波山地から流れ下る由良川の河口域。安寿と厨子王の伝説の舞台とされ、渡り鳥の集まる豊かな水辺環境が広がる。'},
+    en:{ name:'Yura River Estuary', desc:'Where the Yura River meets the sea, this estuary is tied to the legend of Anju and Zushiomaru and hosts migratory birds year-round.'},
+    zh:{ name:'由良川河口', desc:'从丹波山地流下的由良川河口区域。据说是安寿与厨子王传说的舞台，也是候鸟聚集的丰富水域环境。'} },
+  { id:14, layer:'中景', cat:'灯台', dist:9.29, bearing:358.9, lat:35.5483, lon:135.3417, emoji:'🔦',
+    ja:{ name:'博奕岬灯台', desc:'若狭湾の入口に立つ歴史ある灯台。暗礁が多い複雑な海域を行く船舶の安全を守り続ける、航路の要となる施設。'},
+    en:{ name:'Bakuchi Cape Lighthouse', desc:'A historic lighthouse guarding the entrance to Wakasa Bay, guiding vessels safely through the rocky, reef-strewn coastal waters.'},
+    zh:{ name:'博奕岬灯台', desc:'矗立在若狭湾入口的历史灯台。守护着在暗礁众多的复杂海域行驶的船舶安全的航路要地。'} },
+  { id:15, layer:'遠景', cat:'島', dist:25.14, bearing:16.9, lat:35.68111, lon:135.42444, emoji:'🏔',
+    ja:{ name:'冠島（神秘の島）', desc:'若狭湾に浮かぶ無人島。オオミズナギドリの繁殖地として国の天然記念物に指定され、神秘の雰囲気をまとう孤島。'},
+    en:{ name:'Kammurijima Island (Mysterious Isle)', desc:'An uninhabited island in Wakasa Bay, designated a National Natural Monument as the breeding ground of the Streaked Shearwater.'},
+    zh:{ name:'冠岛（神秘之岛）', desc:'漂浮在若狭湾中的无人岛。作为大水薙鸟的繁殖地被指定为国家天然纪念物，是一座充满神秘气息的孤岛。'} },
+  { id:16, layer:'遠景', cat:'文化', dist:24.26, bearing:344.7, lat:35.67522, lon:135.27269, emoji:'🛶',
+    ja:{ name:'伊根の舟屋', desc:'伊根湾に沿って立ち並ぶ独特の建築景観。重要伝統的建造物群保存地区に選定された、海の上に建つ漁師の家「舟屋」が圧巻。'},
+    en:{ name:'Ine Funaya (Boat Houses)', desc:'Fishermen\'s "boat houses" built directly over Ine Bay form a Preservation District of Historic Buildings—Japan\'s Venice of the north.'},
+    zh:{ name:'伊根船屋', desc:'沿伊根湾并排而立的独特建筑景观。被选定为重要传统建筑物群保护地区，建于海上的渔民居所"船屋"气势壮观。'} },
+  { id:17, layer:'遠景', cat:'岬', dist:18.82, bearing:34.8, lat:35.603694, lon:135.462528, emoji:'🌄',
+    ja:{ name:'成生岬', desc:'若狭湾国定公園内に位置する岬。リアス式海岸の複雑な地形が織りなす景観美と、豊かな海洋生態系が魅力。'},
+    en:{ name:'Naryu Cape', desc:'A rugged cape within Wakasa Bay Quasi-National Park. The intricate ria coastline and rich marine ecosystem make it a nature lover\'s highlight.'},
+    zh:{ name:'成生岬', desc:'位于若狭湾准国立公园内的岬角。锯齿形海岸复杂地形形成的壮观景色与丰富的海洋生态系统令人陶醉。'} },
+  { id:18, layer:'遠景', cat:'山', dist:13.47, bearing:70.6, lat:35.505, lon:135.48389, emoji:'⛰',
+    ja:{ name:'青葉山（若狭富士）', desc:'標高693mの秀麗な双耳峰。その美しい山容から「若狭富士」と称され、松尾寺の山岳霊場としても知られる霊峰。'},
+    en:{ name:'Aobayama (Mt. Wakasa-Fuji)', desc:'A 693m twin-peaked mountain so elegantly shaped it earned the nickname "Wakasa Fuji." A sacred mountain pilgrimage site since antiquity.'},
+    zh:{ name:'青叶山（若狭富士）', desc:'海拔693m的秀丽双耳峰。其美丽的山容被称为"若狭富士"，也是松尾寺的山岳灵场。'} },
+  { id:19, layer:'遠景', cat:'山', dist:21.5, bearing:266.7, lat:35.45333, lon:135.10667, emoji:'🔮',
+    ja:{ name:'大江山（酒呑童子の伝説）', desc:'酒呑童子の伝説で名高い連峰。源頼光による鬼退治の伝説が語り継がれ、丹後の霊山として信仰を集める山岳景観。'},
+    en:{ name:'Mt. Oeyama (Demon Legend)', desc:'Legendary lair of Shuten-Doji, the great demon defeated by Minamoto no Yorimitsu. This mystical range looms large in Japanese folklore.'},
+    zh:{ name:'大江山（酒吞童子传说）', desc:'以酒吞童子传说而闻名的山脉。源赖光斩鬼的传说代代相传，作为丹后灵山备受信仰。'} },
+  { id:20, layer:'遠景', cat:'岬', dist:36.61, bearing:342.8, lat:35.779297, lon:135.223589, emoji:'🌐',
+    ja:{ name:'経ヶ岬（丹後半島最北端）', desc:'京都府最北端の岬。急峻なリアス式海岸が日本海に突き出した雄大な景観と、山中に立つ白い灯台が印象的。'},
+    en:{ name:'Kyogamisaki (Tango Peninsula Tip)', desc:'The northernmost point of Kyoto Prefecture. A dramatic ria cape jutting into the Sea of Japan, crowned by a solitary white lighthouse.'},
+    zh:{ name:'经岬（丹后半岛最北端）', desc:'京都府最北端的岬角。急峭的锯齿形海岸突入日本海的壮观景色，以及山中矗立的白色灯台令人印象深刻。'} },
+  { id:21, layer:'超遠景', cat:'霊峰', dist:149.89, bearing:58.8, lat:36.155, lon:136.771389, emoji:'✨',
+    ja:{ name:'白山（幻の霊峰）', desc:'約150km彼方に望む日本三霊山の一つ。晴天時、五老スカイタワーからその雄姿が視認できる「幻の展望」として人気を集める。'},
+    en:{ name:'Mt. Hakusan (Phantom Sacred Peak)', desc:'One of Japan\'s Three Sacred Mountains, visible ~150km away on clear days. Spotting it from Gorogatake Tower is considered a lucky sighting.'},
+    zh:{ name:'白山（幻之灵峰）', desc:'在约150公里外眺望的日本三灵山之一。晴天时可从五老展望台看到其雄姿，作为"幻之远眺"而备受欢迎。'} },
+  { id:22, layer:'超遠景', cat:'都市', dist:63.45, bearing:142.5, lat:35.01161, lon:135.76811, emoji:'⛩',
+    ja:{ name:'京都市（千年の都）', desc:'約63km南東。世界遺産を多数擁する千年の都。晴天時には市街地の方向を確認でき、歴史と文化の厚みを感じさせる。'},
+    en:{ name:'Kyoto City (Ancient Capital)', desc:'Some 63km southeast lies Japan\'s ancient capital, home to countless UNESCO World Heritage sites and 1,200 years of cultural heritage.'},
+    zh:{ name:'京都市（千年古都）', desc:'约63公里东南方向。拥有众多世界遗产的千年古都。晴天时可确认市区方向，感受历史与文化的厚重。'} },
+  { id:23, layer:'超遠景', cat:'都市', dist:86.94, bearing:170.4, lat:34.69375, lon:135.50211, emoji:'🏙',
+    ja:{ name:'大阪市', desc:'約87km南。経済都市・大阪の方向。日本第二の都市が遥か南方に位置し、晴れた夜には高層ビル群の灯りが見えることも。'},
+    en:{ name:'Osaka City', desc:'Japan\'s second city lies ~87km south. On crystal-clear nights, the glow of Osaka\'s skyscrapers can shimmer on the distant horizon.'},
+    zh:{ name:'大阪市', desc:'约87公里南方。日本第二大城市，在晴朗的夜晚有时能看到高层建筑群的灯光。'} },
+  { id:24, layer:'超遠景', cat:'都市', dist:27.14, bearing:226.5, lat:35.29669, lon:135.12661, emoji:'🏯',
+    ja:{ name:'福知山市（明智光秀の城下町）', desc:'明智光秀が治めた城下町。福知山城が山上に聳え、北近畿の交通・経済の要衝として発展した丹波地方の中心都市。'},
+    en:{ name:'Fukuchiyama City (Mitsuhide\'s Castle Town)', desc:'Ruled by Akechi Mitsuhide, this castle town features a hilltop fortress and serves as a key transportation hub in Northern Kinki.'},
+    zh:{ name:'福知山市（明智光秀的城下町）', desc:'明智光秀统治的城下町。福知山城巍然矗立于山顶，是北近畿交通经济要地，丹波地区的中心城市。'} },
+  { id:25, layer:'超遠景', cat:'都市', dist:15.54, bearing:300.5, lat:35.53556, lon:135.1955, emoji:'🌸',
+    ja:{ name:'宮津市（天橋立）', desc:'日本三景・天橋立を擁する丹後の中核都市。松林が続く全長3.6kmの砂嘴が若狭湾を横切る絶景は世界的にも有名。'},
+    en:{ name:'Miyazu City (Amanohashidate)', desc:'Home to Amanohashidate, one of Japan\'s Three Views—a 3.6km pine-clad sandbar arcing gracefully across Miyazu Bay. A UNESCO candidate.'},
+    zh:{ name:'宫津市（天桥立）', desc:'拥有日本三景之一天桥立的丹后核心城市。全长3.6公里的松林沙洲横跨若狭湾的绝景举世闻名。'} },
+];
+
+// ══════════════════════════════════════════
+// I18N
+// ══════════════════════════════════════════
+const I18N = {
+  ja:{
+    title:'五老スカイタワー', sub:'AR LANDSCAPE GUIDE',
+    ar:'ARビュー', map:'地図ビュー',
+    spotCount:(n)=>`${n} スポットを表示中`,
+    hint:'スワイプして探索',
+    dist:'直線距離', bearing:'方位角', dir:'方角',
+    close:'✕', layers:['近景 ～5km','中景 ～15km','遠景 ～40km','超遠景'],
+    layerKeys:['近景','中景','遠景','超遠景'],
+    dirs:['北','北北東','北東','東北東','東','東南東','南東','南南東','南','南南西','南西','西南西','西','西北西','北西','北北西'],
+    towerLabel:'五老スカイタワー'
+  },
+  en:{
+    title:'GOROGATAKE TOWER', sub:'AR LANDSCAPE GUIDE',
+    ar:'AR View', map:'Map View',
+    spotCount:(n)=>`${n} spots visible`,
+    hint:'Swipe to explore',
+    dist:'Distance', bearing:'Bearing', dir:'Direction',
+    close:'✕', layers:['Near ≤5km','Mid ≤15km','Far ≤40km','Ultra Far'],
+    layerKeys:['Near','Mid','Far','Ultra'],
+    dirs:['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'],
+    towerLabel:'Gorogatake Tower'
+  },
+  zh:{
+    title:'五老瞭望台', sub:'AR 景观导览',
+    ar:'AR视图', map:'地图视图',
+    spotCount:(n)=>`显示 ${n} 个景点`,
+    hint:'左右滑动探索',
+    dist:'直线距离', bearing:'方位角', dir:'方向',
+    close:'✕', layers:['近景 ≤5km','中景 ≤15km','远景 ≤40km','超远景'],
+    layerKeys:['近景C','中景C','遠景C','超遠景C'],
+    dirs:['北','北北东','北东','东北东','东','东南东','南东','南南东','南','南南西','南西','西南西','西','西北西','北西','北北西'],
+    towerLabel:'五老瞭望台'
+  }
+};
+
+let lang = 'ja';
+let currentBearing = 30;
+let activeView = 'ar';
+let activeLayers = new Set(['近景','中景','遠景','超遠景','Near','Mid','Far','Ultra','近景C','中景C','遠景C','超遠景C']);
+let isDragging = false, lastX = 0, velocity = 0;
+const FOV = 115;
+const VW = ()=>window.innerWidth;
+const VH = ()=>window.innerHeight;
+
+// ── Layer key helpers ──
+function layerKey(l, lng) {
+  const map = { ja:{近景:'近景',中景:'中景',遠景:'遠景',超遠景:'超遠景'}, en:{近景:'Near',中景:'Mid',遠景:'Far',超遠景:'Ultra'}, zh:{近景:'近景C',中景:'中景C',遠景:'遠景C',超遠景:'超遠景C'} };
+  return (map[lng]||map.ja)[l]||l;
+}
+function isLayerActive(spot) {
+  return ['ja','en','zh'].some(lng => activeLayers.has(layerKey(spot.layer, lng)));
+}
+
+// ── Update language ──
+function setLang(l) {
+  lang = l;
+  const t = I18N[l];
+  document.getElementById('hud-title').textContent = t.title;
+  document.getElementById('hud-sub').textContent = t.sub;
+  document.getElementById('vbtn-ar').textContent = t.ar;
+  document.getElementById('vbtn-map').textContent = t.map;
+  document.getElementById('hint-text').textContent = t.hint;
+  buildFilters();
+  renderAR();
+  if(activeView==='map') renderMap();
+  updateHUD();
+}
+
+// ── Filters ──
+function buildFilters() {
+  const t = I18N[lang];
+  const el = document.getElementById('filters');
+  el.innerHTML = '';
+  t.layerKeys.forEach((k,i) => {
+    const origKey = ['近景','中景','遠景','超遠景'][i];
+    const btn = document.createElement('button');
+    btn.className = 'f-btn active';
+    btn.dataset.l = k;
+    btn.dataset.orig = origKey;
+    btn.textContent = t.layers[i];
+    btn.addEventListener('click', () => {
+      // toggle all lang variants
+      const keys = ['ja','en','zh'].map(lg => layerKey(origKey,lg));
+      const isActive = activeLayers.has(k);
+      keys.forEach(key => isActive ? activeLayers.delete(key) : activeLayers.add(key));
+      btn.classList.toggle('active', !isActive);
+      renderAR();
+      if(activeView==='map') renderMap();
+    });
+    el.appendChild(btn);
+  });
+}
+
+// ── HUD ──
+function updateHUD() {
+  const deg = Math.round(((currentBearing%360)+360)%360);
+  document.getElementById('hud-deg').textContent = deg+'°';
+  const dirs = I18N[lang].dirs;
+  const idx = Math.round(deg/22.5)%16;
+  document.getElementById('hud-dir').textContent = dirs[idx];
+}
+
+// ══════════════════════════════════════════
+// AR VIEW
+// ══════════════════════════════════════════
+function bearingToX(b) {
+  let diff = b - currentBearing;
+  while(diff>180) diff-=360;
+  while(diff<-180) diff+=360;
+  return VW()/2 + (diff/FOV)*VW();
+}
+
+function layerToY(layer) {
+  const h = VH();
+  const m = {近景:.50,中景:.42,遠景:.37,超遠景:.32};
+  return h*(m[layer]||.42);
+}
+
+function stemHeight(layer) {
+  return {近景:42,中景:28,遠景:16,超遠景:8}[layer]||22;
+}
+
+function renderAR() {
+  const scene = document.getElementById('ar-view');
+  scene.innerHTML = '';
+  let count = 0;
+
+  SPOTS.forEach((s,i) => {
+    if(!isLayerActive(s)) return;
+    const x = bearingToX(s.bearing);
+    if(x < -150 || x > VW()+150) return;
+    count++;
+
+    const lk = layerKey(s.layer, lang);
+    const y = layerToY(s.layer);
+    const stemH = stemHeight(s.layer);
+    const scale = Math.max(0.55, 1-(s.dist/320));
+    const pdelay = (i*0.4)%3;
+    const pd = 2.5 + (i*0.3)%1.5;
+
+    const pin = document.createElement('div');
+    pin.className = `pin l-${lk}`;
+    pin.style.cssText = `left:${x}px;top:${y}px;--pd:${pd}s;--pdelay:-${pdelay}s;`;
+    pin.innerHTML = `
+      <div class="pin-label" style="transform:scale(${scale})">${s[lang].name}</div>
+      <div class="pin-stem" style="height:${stemH}px"></div>
+      <div class="pin-dot"></div>`;
+    pin.addEventListener('click',()=>openPanel(s));
+    scene.appendChild(pin);
+  });
+
+  document.getElementById('spot-ct').textContent = I18N[lang].spotCount(count);
+}
+
+// ══════════════════════════════════════════
+// MAP VIEW
+// ══════════════════════════════════════════
+let mapEl = null;
+
+function renderMap() {
+  const mv = document.getElementById('map-view');
+  mv.innerHTML = '';
+
+  // Calculate bounds
+  const lats = SPOTS.filter(s=>s.lat).map(s=>s.lat).concat([BASE.lat]);
+  const lons = SPOTS.filter(s=>s.lon).map(s=>s.lon).concat([BASE.lon]);
+  const minLat = Math.min(...lats)-0.05;
+  const maxLat = Math.max(...lats)+0.05;
+  const minLon = Math.min(...lons)-0.05;
+  const maxLon = Math.max(...lons)+0.05;
+
+  const w = VW(), h = VH();
+  const pad = 60;
+
+  function toXY(lat,lon) {
+    const x = pad + (lon-minLon)/(maxLon-minLon)*(w-pad*2);
+    const y = h-pad - (lat-minLat)/(maxLat-minLat)*(h-pad*2);
+    return [x,y];
+  }
+
+  // SVG map
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width',w);
+  svg.setAttribute('height',h);
+  svg.style.cssText='position:absolute;inset:0;';
+
+  // Grid
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const grid = document.createElementNS('http://www.w3.org/2000/svg','pattern');
+  grid.setAttribute('id','grid');grid.setAttribute('width','50');grid.setAttribute('height','50');
+  grid.setAttribute('patternUnits','userSpaceOnUse');
+  const gl1 = document.createElementNS('http://www.w3.org/2000/svg','path');
+  gl1.setAttribute('d','M 50 0 L 0 0 0 50');gl1.setAttribute('fill','none');
+  gl1.setAttribute('stroke','rgba(91,200,255,0.06)');gl1.setAttribute('stroke-width','1');
+  grid.appendChild(gl1);defs.appendChild(grid);svg.appendChild(defs);
+
+  const gridrect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  gridrect.setAttribute('width',w);gridrect.setAttribute('height',h);
+  gridrect.setAttribute('fill','url(#grid)');svg.appendChild(gridrect);
+
+  // Range circles from tower
+  const [tx,ty] = toXY(BASE.lat,BASE.lon);
+  [5,15,40,150].forEach((km,i) => {
+    const colors = ['rgba(91,200,255','rgba(61,232,200','rgba(167,139,250','rgba(244,114,182'];
+    const latDeg = km/111;
+    const [ex] = toXY(BASE.lat,BASE.lon + latDeg/Math.cos(BASE.lat*Math.PI/180));
+    const r = Math.abs(ex-tx);
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx',tx);circle.setAttribute('cy',ty);circle.setAttribute('r',r);
+    circle.setAttribute('fill','none');
+    circle.setAttribute('stroke',`${colors[i]},0.12)`);
+    circle.setAttribute('stroke-width','1');
+    circle.setAttribute('stroke-dasharray','4,4');
+    svg.appendChild(circle);
+
+    // label
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('x',tx+r-2);lbl.setAttribute('y',ty-4);
+    lbl.setAttribute('fill',`${colors[i]},0.4)`);
+    lbl.setAttribute('font-size','9');lbl.setAttribute('text-anchor','end');
+    lbl.textContent = km+'km';svg.appendChild(lbl);
+  });
+
+  // Lines from tower to spots
+  SPOTS.filter(s=>s.lat&&isLayerActive(s)).forEach(s=>{
+    const [sx,sy]=toXY(s.lat,s.lon);
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',tx);line.setAttribute('y1',ty);
+    line.setAttribute('x2',sx);line.setAttribute('y2',sy);
+    const cols={近景:'rgba(91,200,255',中景:'rgba(61,232,200',遠景:'rgba(167,139,250',超遠景:'rgba(244,114,182'};
+    line.setAttribute('stroke',`${cols[s.layer]||cols['近景']},0.15)`);
+    line.setAttribute('stroke-width','1');
+    svg.appendChild(line);
+  });
+
+  mv.appendChild(svg);
+
+  // Tower marker
+  const tm = document.createElement('div');
+  tm.className = 'tower-marker';
+  tm.style.cssText = `left:${tx}px;top:${ty}px;`;
+  tm.innerHTML = `<div class="tower-label">${I18N[lang].towerLabel}</div><div class="tower-dot"></div>`;
+  mv.appendChild(tm);
+
+  // Spot dots
+  const layerCols = {近景:'var(--near)',中景:'var(--mid)',遠景:'var(--far)',超遠景:'var(--ultra)'};
+  SPOTS.filter(s=>s.lat&&isLayerActive(s)).forEach(s=>{
+    const [sx,sy]=toXY(s.lat,s.lon);
+    const lk=layerKey(s.layer,lang);
+    const dot=document.createElement('div');
+    dot.className=`map-spot ml-${lk}`;
+    dot.style.cssText=`left:${sx}px;top:${sy}px;`;
+    dot.innerHTML=`
+      <div class="map-spot-label">${s[lang].name}</div>
+      <div class="map-dot" style="background:${layerCols[s.layer]};border-color:rgba(255,255,255,.5)"></div>`;
+    dot.addEventListener('click',()=>openPanel(s));
+    mv.appendChild(dot);
+  });
+}
+
+// ══════════════════════════════════════════
+// PANEL
+// ══════════════════════════════════════════
+function openPanel(s) {
+  const t = I18N[lang];
+  document.getElementById('p-name').textContent = s[lang].name;
+  document.getElementById('p-desc').textContent = s[lang].desc;
+
+  // Image placeholder with emoji
+  document.getElementById('p-img-wrap').innerHTML =
+    `<div class="p-img-placeholder" style="font-size:52px">${s.emoji}</div>`;
+
+  // Tags
+  const lk=layerKey(s.layer,lang);
+  const layerLabel=t.layers[['近景','中景','遠景','超遠景'].indexOf(s.layer)]||s.layer;
+  document.getElementById('p-tags').innerHTML=
+    `<span class="tag hl">${layerLabel}</span><span class="tag">${s.cat}</span>${s.dist?`<span class="tag">${s.dist}km</span>`:''}`;
+
+  // Stats
+  if(s.dist&&s.bearing){
+    const dirs=t.dirs;
+    const di=Math.round(s.bearing/22.5)%16;
+    document.getElementById('p-stats').innerHTML=`
+      <div class="stat"><div class="stat-v">${s.dist}km</div><div class="stat-l">${t.dist}</div></div>
+      <div class="stat"><div class="stat-v">${Math.round(s.bearing)}°</div><div class="stat-l">${t.bearing}</div></div>
+      <div class="stat"><div class="stat-v">${dirs[di]}</div><div class="stat-l">${t.dir}</div></div>`;
+  } else {
+    document.getElementById('p-stats').innerHTML='';
+  }
+
+  document.getElementById('panel').classList.add('open');
+}
+
+document.getElementById('p-close').addEventListener('click',()=>{
+  document.getElementById('panel').classList.remove('open');
+});
+
+// ══════════════════════════════════════════
+// VIEW SWITCH
+// ══════════════════════════════════════════
+document.querySelectorAll('.view-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    activeView=btn.dataset.view;
+    document.querySelectorAll('.view-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===activeView));
+    document.getElementById('ar-view').style.display=activeView==='ar'?'block':'none';
+    document.getElementById('map-view').classList.toggle('show',activeView==='map');
+    document.getElementById('map-compass').classList.toggle('show',activeView==='map');
+    document.getElementById('scan').style.display=activeView==='ar'?'block':'none';
+    document.getElementById('swipe-hint').style.display=activeView==='ar'?'flex':'none';
+    document.getElementById('hud-deg').parentElement.style.display=activeView==='ar'?'block':'none';
+    if(activeView==='map') renderMap();
+  });
+});
+
+// ══════════════════════════════════════════
+// LANGUAGE
+// ══════════════════════════════════════════
+document.querySelectorAll('.lang-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===btn.dataset.lang));
+    setLang(btn.dataset.lang);
+    // update font
+    const fonts={ja:"'Noto Sans JP',sans-serif",en:"'Noto Sans','Syne',sans-serif",zh:"'Noto Sans SC',sans-serif"};
+    document.body.style.fontFamily=fonts[btn.dataset.lang];
+  });
+});
+
+// ══════════════════════════════════════════
+// DRAG
+// ══════════════════════════════════════════
+function onDragStart(x){isDragging=true;lastX=x;velocity=0;}
+function onDragMove(x){
+  if(!isDragging) return;
+  const dx=x-lastX;
+  velocity=dx;
+  currentBearing-=dx/VW()*FOV;
+  lastX=x;
+  if(activeView==='ar'){renderAR();updateHUD();}
+}
+function onDragEnd(){isDragging=false;inertia();}
+
+function inertia(){
+  let v=velocity;
+  function step(){
+    if(Math.abs(v)<0.15) return;
+    currentBearing-=v/VW()*FOV;
+    v*=0.91;
+    if(activeView==='ar'){renderAR();updateHUD();}
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+document.addEventListener('mousedown',e=>{
+  if(e.target.closest('#panel')||e.target.closest('#filters')||e.target.closest('#view-sw')||e.target.closest('#lang-sw')) return;
+  onDragStart(e.clientX);
+});
+document.addEventListener('mousemove',e=>{if(isDragging)onDragMove(e.clientX);});
+document.addEventListener('mouseup',onDragEnd);
+document.addEventListener('touchstart',e=>{
+  if(e.target.closest('#panel')||e.target.closest('#filters')||e.target.closest('#view-sw')||e.target.closest('#lang-sw')) return;
+  onDragStart(e.touches[0].clientX);
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(e.target.closest('#panel')) return;
+  onDragMove(e.touches[0].clientX);
+},{passive:true});
+document.addEventListener('touchend',onDragEnd);
+
+// Gyroscope
+if(window.DeviceOrientationEvent){
+  window.addEventListener('deviceorientation',e=>{
+    if(e.alpha!==null&&!isDragging){
+      currentBearing=e.alpha;
+      if(activeView==='ar'){renderAR();updateHUD();}
+    }
+  });
+}
+
+// Auto-demo pan
+let autoPan=true; setTimeout(()=>autoPan=false,10000);
+(function demo(){
+  if(!autoPan||isDragging) return;
+  currentBearing+=0.04;
+  if(activeView==='ar'){renderAR();updateHUD();}
+  requestAnimationFrame(demo);
+})();
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+buildFilters();
+renderAR();
+updateHUD();
+</script>
+</body>
+</html>
