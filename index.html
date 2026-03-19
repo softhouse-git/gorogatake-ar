@@ -367,67 +367,30 @@ function startGyro() {
   }, false);
 }
 
-// ── GYRO OVERLAY (created outside body to avoid touch interference) ──
-(function() {
-  var ov = document.createElement('div');
-  ov.id = 'gyro-overlay';
-  ov.setAttribute('style', [
-    'position:fixed','top:0','left:0','right:0','bottom:0',
-    'z-index:2147483647', // max z-index
-    'background:rgba(0,10,30,0.92)',
-    'display:flex','flex-direction:column',
-    'align-items:center','justify-content:center',
-    'padding:24px'
-  ].join(';'));
-
-  var p = document.createElement('p');
-  p.innerHTML = 'iPhoneを動かして<br>景色を探索するために<br>向きセンサーの使用を<br>許可してください';
-  p.setAttribute('style','color:rgba(255,255,255,.85);font-size:16px;line-height:1.7;text-align:center;margin-bottom:28px;');
-  ov.appendChild(p);
-
-  var btn = document.createElement('button');
-  btn.id = 'gyro-btn';
-  btn.textContent = '向き検知をONにする';
-  btn.setAttribute('style', [
-    'padding:16px 40px','border-radius:32px',
-    'border:2px solid #5bc8ff','background:#001428',
-    'color:#5bc8ff','font-size:18px','font-weight:700',
-    'cursor:pointer','margin-bottom:14px',
-    '-webkit-appearance:none','display:block',
-    'pointer-events:auto'
-  ].join(';'));
-  ov.appendChild(btn);
-
-  var skip = document.createElement('button');
-  skip.id = 'gyro-skip';
-  skip.textContent = 'スキップ（手動スワイプで操作）';
-  skip.setAttribute('style', [
-    'padding:10px 24px','border-radius:20px',
-    'border:1px solid rgba(255,255,255,.3)','background:transparent',
-    'color:rgba(255,255,255,.6)','font-size:13px',
-    'cursor:pointer','-webkit-appearance:none','display:block',
-    'pointer-events:auto'
-  ].join(';'));
-  ov.appendChild(skip);
-
-  // Append to <html> element, completely outside <body>
-  document.documentElement.appendChild(ov);
-})();
-
 function handleGyroBtn() {
   var ov = document.getElementById('gyro-overlay');
-  function hideOv() { ov.style.display='none'; }
   if(typeof DeviceOrientationEvent !== 'undefined' &&
      typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().then(function(state) {
-      if(state === 'granted') { startGyro(); hideOv(); }
-      else { document.getElementById('gyro-btn').textContent = '許可してください'; }
-    }).catch(function() { startGyro(); hideOv(); });
-  } else { startGyro(); hideOv(); }
+      if(state === 'granted') { startGyro(); }
+      else { document.getElementById('gyro-btn').textContent = '許可してください'; return; }
+      ov.style.display = 'none';
+      document.getElementById('ar').style.pointerEvents = 'auto';
+    }).catch(function() {
+      startGyro();
+      ov.style.display = 'none';
+      document.getElementById('ar').style.pointerEvents = 'auto';
+    });
+  } else {
+    startGyro();
+    ov.style.display = 'none';
+    document.getElementById('ar').style.pointerEvents = 'auto';
+  }
 }
 
 function handleGyroSkip() {
   document.getElementById('gyro-overlay').style.display = 'none';
+  document.getElementById('ar').style.pointerEvents = 'auto';
 }
 
 // ── STATE ──
@@ -907,13 +870,13 @@ document.querySelectorAll('.lb').forEach(function(btn) {
 
 // ── GYRO ──
 
-// Wire up gyro buttons
-document.getElementById('gyro-btn').addEventListener('click', handleGyroBtn);
-document.getElementById('gyro-skip').addEventListener('click', handleGyroSkip);
+// gyro buttons wired via onclick in HTML
 
 // Auto-pan removed - causes touch interference on iOS
 
 // ── INIT ──
+// Disable AR touch while gyro overlay is shown
+document.getElementById('ar').style.pointerEvents = 'none';
 renderAR();
 updateHUD();
 window.addEventListener('resize', function() {
@@ -922,5 +885,10 @@ window.addEventListener('resize', function() {
   else renderMap();
 });
 </script>
+<div id="gyro-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,10,30,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+  <p style="color:rgba(255,255,255,.85);font-size:16px;line-height:1.8;text-align:center;margin-bottom:28px;">iPhoneを動かして<br>景色を探索するために<br>向きセンサーの使用を<br>許可してください</p>
+  <button onclick="handleGyroBtn()" style="padding:16px 40px;border-radius:32px;border:2px solid #5bc8ff;background:#001428;color:#5bc8ff;font-size:18px;font-weight:700;-webkit-appearance:none;display:block;margin-bottom:14px;">向き検知をONにする</button>
+  <button onclick="handleGyroSkip()" style="padding:10px 24px;border-radius:20px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.6);font-size:13px;-webkit-appearance:none;display:block;">スキップ（手動スワイプで操作）</button>
+</div>
 </body>
 </html>
