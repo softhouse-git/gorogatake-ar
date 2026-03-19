@@ -4,286 +4,182 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>五老スカイタワー AR展望ガイド</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-
-html, body {
-  width:100%; height:100%;
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{width:100%;height:100%;}
+body{
+  width:100%;height:100%;
   overflow:hidden;
   background:#07111f;
   color:#fff;
-  font-family:-apple-system, 'Noto Sans JP', sans-serif;
-  /* iOS Safari: prevent scroll bounce */
-  position:fixed;
-  top:0; left:0; right:0; bottom:0;
+  font-family:-apple-system,'Hiragino Sans',sans-serif;
+  position:fixed;top:0;left:0;
 }
 
-/* ── 背景 ── */
-#bg {
-  position:absolute;
-  inset:0;
-  background:linear-gradient(175deg,
-    #060d1a 0%, #0a1e38 20%, #123358 40%,
-    #1b567a 55%, #2a7a6a 68%, #1e5440 80%, #0f2e20 100%);
+/* 背景 */
+#bg{
+  position:absolute;inset:0;
+  background:linear-gradient(175deg,#060d1a 0%,#0a1e38 20%,#123358 40%,#1b567a 55%,#2a7a6a 68%,#1e5440 80%,#0f2e20 100%);
 }
-#sea {
-  position:absolute;
-  bottom:0; left:0; right:0;
-  height:36%;
-  background:linear-gradient(180deg, rgba(20,60,110,.7), rgba(8,25,55,.95));
-}
-.hline {
-  position:absolute;
-  bottom:36%; left:0; right:0;
-  height:1px;
-  background:linear-gradient(90deg,transparent,rgba(91,200,255,.3),transparent);
-}
+#sea{position:absolute;bottom:0;left:0;right:0;height:36%;background:linear-gradient(180deg,rgba(20,60,110,.7),rgba(8,25,55,.95));}
+.hline{position:absolute;bottom:36%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(91,200,255,.3),transparent);}
 
-/* ── HUD ── */
-#hud {
-  position:absolute;
-  top:0; left:0; right:0;
-  padding:env(safe-area-inset-top, 14px) 18px 12px;
-  padding-top:max(env(safe-area-inset-top), 14px);
-  background:linear-gradient(180deg, rgba(0,0,0,.6), transparent);
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  z-index:30;
-  pointer-events:none;
+/* HUD */
+#hud{
+  position:absolute;top:0;left:0;right:0;
+  padding:14px 16px 10px;
+  background:linear-gradient(180deg,rgba(0,0,0,.6),transparent);
+  display:flex;justify-content:space-between;align-items:flex-start;
+  z-index:30;pointer-events:none;
 }
-.hud-title { font-size:13px; font-weight:700; letter-spacing:.1em; color:rgba(255,255,255,.8); }
-.hud-sub { font-size:10px; color:rgba(255,255,255,.4); letter-spacing:.08em; margin-top:1px; }
-.hud-deg { font-size:30px; font-weight:300; line-height:1; text-align:right; }
-.hud-dir { font-size:10px; color:rgba(255,255,255,.5); letter-spacing:.1em; text-align:right; margin-top:2px; }
+.ht{font-size:13px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.8);}
+.hs{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px;}
+.hd{font-size:28px;font-weight:300;text-align:right;line-height:1;}
+.hdir{font-size:10px;color:rgba(255,255,255,.5);text-align:right;margin-top:2px;}
 
-/* ── 言語切替 ── */
-#lang {
-  position:absolute;
-  top:max(env(safe-area-inset-top), 14px);
-  left:50%; transform:translateX(-50%);
-  display:flex; gap:2px;
-  background:rgba(0,0,0,.4);
-  border:1px solid rgba(255,255,255,.15);
-  border-radius:20px;
-  padding:3px;
+/* 言語 */
+#lang{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  display:flex;gap:2px;
+  background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:3px;
   z-index:31;
 }
-.lb {
-  padding:5px 13px;
-  border-radius:14px;
-  border:none;
-  background:transparent;
-  color:rgba(255,255,255,.5);
-  font-size:12px;
-  font-weight:500;
-  cursor:pointer;
-  -webkit-appearance:none;
+.lb{
+  padding:5px 12px;border-radius:14px;border:none;
+  background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:500;
+  cursor:pointer;-webkit-appearance:none;
 }
-.lb.on { background:rgba(91,200,255,.2); color:#5bc8ff; border:1px solid rgba(91,200,255,.3); }
+.lb.on{background:rgba(91,200,255,.2);color:#5bc8ff;border:1px solid rgba(91,200,255,.3);}
 
-/* ── フィルター ── */
-#filters {
-  position:absolute;
-  top:60px; right:12px;
-  display:flex; flex-direction:column; gap:5px;
-  z-index:30;
+/* フィルター */
+#filters{position:absolute;top:58px;right:12px;display:flex;flex-direction:column;gap:5px;z-index:30;}
+.fb{
+  padding:5px 10px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.5);
+  color:rgba(255,255,255,.4);font-size:11px;cursor:pointer;
+  white-space:nowrap;text-align:right;-webkit-appearance:none;
 }
-.fb {
-  padding:5px 10px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.15);
-  background:rgba(0,0,0,.5);
-  color:rgba(255,255,255,.5);
-  font-size:11px;
-  cursor:pointer;
-  white-space:nowrap;
-  text-align:right;
-  -webkit-appearance:none;
-  transition:all .2s;
-}
-.fb.on { color:#fff; background:rgba(20,50,90,.7); }
-.fb[data-l="近景"].on  { border-color:#5bc8ff; color:#5bc8ff; }
-.fb[data-l="中景"].on  { border-color:#3de8c8; color:#3de8c8; }
-.fb[data-l="遠景"].on  { border-color:#a78bfa; color:#a78bfa; }
-.fb[data-l="超遠景"].on { border-color:#f472b6; color:#f472b6; }
+.fb.on{color:#fff;background:rgba(20,50,90,.7);}
+.fb[data-l="近景"].on{border-color:#5bc8ff;color:#5bc8ff;}
+.fb[data-l="中景"].on{border-color:#3de8c8;color:#3de8c8;}
+.fb[data-l="遠景"].on{border-color:#a78bfa;color:#a78bfa;}
+.fb[data-l="超遠景"].on{border-color:#f472b6;color:#f472b6;}
 
-/* ── AR キャンバス ── */
-#ar {
-  position:absolute;
-  inset:0;
-  z-index:10;
-  /* iOS: use canvas-like div instead of position:fixed children */
-}
+/* ARビュー */
+#ar{position:absolute;inset:0;z-index:10;overflow:hidden;}
 
-/* ── ピン ── */
-.pin {
-  position:absolute;
-  /* NO transform here - set via left/top in JS */
-  cursor:pointer;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
+/* ピン */
+.pin{position:absolute;cursor:pointer;}
+.plabel{
+  padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;
+  white-space:nowrap;background:rgba(0,0,0,.78);
+  border:1px solid rgba(255,255,255,.2);letter-spacing:.02em;
+  position:absolute;transform:translateX(-50%);
 }
-.plabel {
-  padding:5px 12px;
-  border-radius:18px;
-  font-size:12px;
-  font-weight:600;
-  white-space:nowrap;
-  background:rgba(0,0,0,.75);
-  border:1px solid rgba(255,255,255,.2);
-  letter-spacing:.02em;
-  /* iOS: hardware accelerated */
-  -webkit-transform:translateZ(0);
-  transform:translateZ(0);
-}
-.pstem { width:1px; opacity:.5; }
-.pdot  { width:7px; height:7px; border-radius:50%; margin-top:2px; }
+.pdot{width:8px;height:8px;border-radius:50%;position:absolute;}
+.pstem{width:1px;position:absolute;opacity:.5;}
+.pin[data-l="近景"] .plabel{color:#5bc8ff;border-color:rgba(91,200,255,.4);}
+.pin[data-l="中景"] .plabel{color:#3de8c8;border-color:rgba(61,232,200,.4);}
+.pin[data-l="遠景"] .plabel{color:#a78bfa;border-color:rgba(167,139,250,.4);}
+.pin[data-l="超遠景"] .plabel{color:#f472b6;border-color:rgba(244,114,182,.4);}
+.pin[data-l="近景"] .pdot{background:#5bc8ff;box-shadow:0 0 8px #5bc8ff;}
+.pin[data-l="中景"] .pdot{background:#3de8c8;box-shadow:0 0 8px #3de8c8;}
+.pin[data-l="遠景"] .pdot{background:#a78bfa;box-shadow:0 0 8px #a78bfa;}
+.pin[data-l="超遠景"] .pdot{background:#f472b6;box-shadow:0 0 8px #f472b6;}
+.pin[data-l="近景"] .pstem{background:linear-gradient(180deg,#5bc8ff,transparent);}
+.pin[data-l="中景"] .pstem{background:linear-gradient(180deg,#3de8c8,transparent);}
+.pin[data-l="遠景"] .pstem{background:linear-gradient(180deg,#a78bfa,transparent);}
+.pin[data-l="超遠景"] .pstem{background:linear-gradient(180deg,#f472b6,transparent);}
 
-.pin[data-l="近景"] .plabel  { color:#5bc8ff; border-color:rgba(91,200,255,.4); }
-.pin[data-l="中景"] .plabel  { color:#3de8c8; border-color:rgba(61,232,200,.4); }
-.pin[data-l="遠景"] .plabel  { color:#a78bfa; border-color:rgba(167,139,250,.4); }
-.pin[data-l="超遠景"] .plabel { color:#f472b6; border-color:rgba(244,114,182,.4); }
-.pin[data-l="近景"] .pdot    { background:#5bc8ff; box-shadow:0 0 8px #5bc8ff; }
-.pin[data-l="中景"] .pdot    { background:#3de8c8; box-shadow:0 0 8px #3de8c8; }
-.pin[data-l="遠景"] .pdot    { background:#a78bfa; box-shadow:0 0 8px #a78bfa; }
-.pin[data-l="超遠景"] .pdot  { background:#f472b6; box-shadow:0 0 8px #f472b6; }
-.pin[data-l="近景"] .pstem   { background:linear-gradient(180deg,#5bc8ff,transparent); }
-.pin[data-l="中景"] .pstem   { background:linear-gradient(180deg,#3de8c8,transparent); }
-.pin[data-l="遠景"] .pstem   { background:linear-gradient(180deg,#a78bfa,transparent); }
-.pin[data-l="超遠景"] .pstem { background:linear-gradient(180deg,#f472b6,transparent); }
+/* 地図 */
+#mapview{position:absolute;inset:0;z-index:10;display:none;}
+#mapview.show{display:block;}
+#leafmap{width:100%;height:100%;}
+.lf-tip{background:rgba(0,0,0,.8)!important;border:1px solid rgba(255,255,255,.2)!important;color:#fff!important;font-size:11px!important;border-radius:8px!important;padding:2px 8px!important;white-space:nowrap!important;box-shadow:none!important;}
+.lf-tip::before{display:none!important;}
+.lf-tower{background:rgba(0,0,0,.8)!important;border:1px solid #ffd740!important;color:#ffd740!important;font-size:11px!important;font-weight:700!important;border-radius:8px!important;padding:2px 8px!important;box-shadow:none!important;}
+.lf-tower::before{display:none!important;}
 
-/* ── 地図ビュー ── */
-#mapview {
-  position:absolute;
-  inset:0;
-  z-index:10;
-  display:none;
-  background:#07111f;
-  overflow:hidden;
+/* ビュー切替 */
+#vsw{
+  position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  display:flex;background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.18);border-radius:24px;overflow:hidden;z-index:30;
 }
-#mapview.show { display:block; }
-#leaflet-map { width:100%; height:100%; }
-.leaflet-container { background:#07111f; }
+.vb{
+  padding:10px 22px;border:none;background:transparent;
+  color:rgba(255,255,255,.5);font-size:12px;font-weight:500;
+  cursor:pointer;-webkit-appearance:none;white-space:nowrap;
+}
+.vb.on{background:rgba(91,200,255,.18);color:#5bc8ff;}
 
-/* ── ビュー切替 ── */
-#vsw {
-  position:absolute;
-  bottom:max(env(safe-area-inset-bottom), 20px);
-  left:50%; transform:translateX(-50%);
-  display:flex;
-  background:rgba(0,0,0,.55);
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:24px;
-  overflow:hidden;
-  z-index:30;
-}
-.vb {
-  padding:10px 22px;
-  border:none;
-  background:transparent;
-  color:rgba(255,255,255,.5);
-  font-size:12px;
-  font-weight:500;
-  cursor:pointer;
-  white-space:nowrap;
-  -webkit-appearance:none;
-}
-.vb.on { background:rgba(91,200,255,.18); color:#5bc8ff; }
-
-/* ── スポット数 ── */
-#ct {
-  position:absolute;
-  bottom:68px;
-  left:50%; transform:translateX(-50%);
-  font-size:11px;
-  color:rgba(255,255,255,.4);
-  letter-spacing:.06em;
-  z-index:25;
-  pointer-events:none;
-  white-space:nowrap;
+/* スポット数 */
+#ct{
+  position:absolute;bottom:68px;left:50%;transform:translateX(-50%);
+  font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.06em;
+  z-index:20;pointer-events:none;white-space:nowrap;
 }
 
-/* gyro overlay created via JS */
+/* ジャイロボタン（画面下部に固定） */
+#gyrobtn{
+  position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+  padding:12px 28px;border-radius:28px;
+  border:2px solid #5bc8ff;background:rgba(0,20,50,.9);
+  color:#5bc8ff;font-size:15px;font-weight:700;
+  cursor:pointer;-webkit-appearance:none;
+  z-index:40;white-space:nowrap;
+  display:block;
+}
 
-/* ── 詳細パネル ── */
-#panel {
-  position:absolute;
-  bottom:0; left:0; right:0;
-  background:rgba(4,12,28,.92);
-  border-top:1px solid rgba(255,255,255,.15);
-  padding:0 20px max(env(safe-area-inset-bottom), 24px);
+/* 詳細パネル */
+#panel{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(4,12,28,.93);border-top:1px solid rgba(255,255,255,.15);
+  padding:0 20px 32px;
   transform:translateY(100%);
   transition:transform .35s cubic-bezier(.16,1,.3,1);
-  z-index:50;
-  max-height:55vh;
-  overflow-y:auto;
+  z-index:50;max-height:60vh;overflow-y:auto;
   -webkit-overflow-scrolling:touch;
 }
-#panel.open { transform:translateY(0); }
-.ph { width:36px; height:4px; background:rgba(255,255,255,.2); border-radius:2px; margin:14px auto 16px; }
-.ptop { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
-.pname { font-size:20px; font-weight:700; line-height:1.3; flex:1; }
-.pclose {
-  width:30px; height:30px; border-radius:50%;
-  background:rgba(255,255,255,.1); border:none;
-  color:#fff; font-size:14px; cursor:pointer;
-  flex-shrink:0; margin-left:10px;
-  -webkit-appearance:none;
+#panel.open{transform:translateY(0);}
+.ph{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:14px auto 16px;}
+.ptop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.pname{font-size:20px;font-weight:700;line-height:1.3;flex:1;}
+.pclose{
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,.1);border:none;
+  color:#fff;font-size:14px;cursor:pointer;
+  flex-shrink:0;margin-left:10px;-webkit-appearance:none;
 }
-.ptags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
-.tag { font-size:11px; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,.08); color:rgba(255,255,255,.75); }
-.tagh { background:rgba(91,200,255,.14); color:#5bc8ff; border:1px solid rgba(91,200,255,.3); }
-.pdesc { font-size:13px; line-height:1.8; color:rgba(255,255,255,.75); margin-bottom:16px; }
-.pstats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; padding-top:14px; border-top:1px solid rgba(255,255,255,.08); }
-.sv { font-size:20px; font-weight:700; color:#5bc8ff; text-align:center; line-height:1; margin-bottom:3px; }
-.sl { font-size:10px; color:rgba(255,255,255,.4); text-align:center; letter-spacing:.07em; }
-
-/* ── スワイプヒント ── */
-#hint {
-  position:absolute;
-  bottom:72px; left:50%; transform:translateX(-50%);
-  font-size:11px; color:rgba(255,255,255,.4);
-  letter-spacing:.06em; pointer-events:none; z-index:20;
-  white-space:nowrap;
-  animation:fh 5s ease-in-out 3s both;
-}
-@keyframes fh { 0%,100%{opacity:0} 20%,80%{opacity:1} }
+.ptags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.tag{font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);}
+.tagh{background:rgba(91,200,255,.14);color:#5bc8ff;border:1px solid rgba(91,200,255,.3);}
+.pdesc{font-size:13px;line-height:1.8;color:rgba(255,255,255,.75);margin-bottom:16px;}
+#pimg{width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:14px;display:none;}
+#pimgload{width:100%;height:60px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:12px;margin-bottom:14px;}
+.pstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);}
+.sv{font-size:20px;font-weight:700;color:#5bc8ff;text-align:center;line-height:1;margin-bottom:3px;}
+.sl{font-size:10px;color:rgba(255,255,255,.4);text-align:center;letter-spacing:.07em;}
 </style>
 </head>
 <body>
 
-<!-- 背景 -->
-<div id="bg">
-  <div class="hline"></div>
-  <div id="sea"></div>
-</div>
+<div id="bg"><div class="hline"></div><div id="sea"></div></div>
 
-<!-- HUD -->
 <div id="hud">
-  <div>
-    <div class="hud-title" id="ht">五老スカイタワー</div>
-    <div class="hud-sub">AR LANDSCAPE GUIDE</div>
-  </div>
-  <div>
-    <div class="hud-deg" id="hdeg">30°</div>
-    <div class="hud-dir" id="hdir">北東</div>
-  </div>
+  <div><div class="ht">五老スカイタワー</div><div class="hs">AR LANDSCAPE GUIDE</div></div>
+  <div><div class="hd" id="hdeg">30°</div><div class="hdir" id="hdir">北東</div></div>
 </div>
 
-<!-- 言語 -->
 <div id="lang">
   <button class="lb on" data-l="ja">日本語</button>
   <button class="lb" data-l="en">EN</button>
   <button class="lb" data-l="zh">中文</button>
 </div>
 
-<!-- フィルター -->
 <div id="filters">
   <button class="fb on" data-l="近景">近景 ～5km</button>
   <button class="fb on" data-l="中景">中景 ～15km</button>
@@ -291,30 +187,21 @@ html, body {
   <button class="fb on" data-l="超遠景">超遠景</button>
 </div>
 
-<!-- ARビュー -->
 <div id="ar"></div>
+<div id="mapview"><div id="leafmap"></div></div>
 
-<!-- 地図ビュー -->
-<div id="mapview" id="mapview"></div>
-
-<!-- スポット数 -->
 <div id="ct"></div>
+<button id="gyrobtn">📡 向き検知をONにする</button>
 
-<!-- ヒント -->
-<div id="hint">← スワイプして探索 →</div>
-
-<!-- ビュー切替 -->
 <div id="vsw">
-  <button class="vb on" data-v="ar" id="vbar">ARビュー</button>
-  <button class="vb" data-v="map" id="vbmap">地図ビュー</button>
+  <button class="vb on" data-v="ar">ARビュー</button>
+  <button class="vb" data-v="map">地図ビュー</button>
 </div>
 
-
-
-<!-- 詳細パネル -->
 <div id="panel">
   <div class="ph"></div>
-  <div id="p-img-wrap"></div>
+  <img id="pimg" src="" alt="">
+  <div id="pimgload"></div>
   <div class="ptop">
     <div class="pname" id="pname"></div>
     <button class="pclose" id="pclose">✕</button>
@@ -325,467 +212,400 @@ html, body {
 </div>
 
 <script>
-// ══════════════════════════════════════════
+// ==============================
 // DATA
-// ══════════════════════════════════════════
+// ==============================
+var BASE_LAT = 35.464806, BASE_LON = 135.343583;
+
 var SPOTS = [
-  {layer:'近景',cat:'旧軍港',dist:3.35,b:57.5,  ja:'海上自衛隊北吸桟橋',    en:'JMSDF Kitasui Pier',         zh:'海上自卫队北吸泊岸',   desc_ja:'イージス艦などの護衛艦が停泊する海上自衛隊の桟橋。舞鶴の海軍都市としての歴史を今に伝える現役の軍港施設。',desc_en:'A maritime self-defense force pier where Aegis destroyers berth.',desc_zh:'停靠神盾舰等护卫舰的海上自卫队栈桥。'},
-  {layer:'近景',cat:'旧軍港',dist:2.75,b:66.3,  ja:'舞鶴地方総監部/海軍記念館',en:'Maizuru Naval Museum',        zh:'舞鹤地方总监部/海军纪念馆',desc_ja:'旧海軍の赤れんが建築が残る施設。明治期の海軍史を物語る貴重な遺構。',desc_en:'Red-brick naval buildings from the Meiji era house this museum.',desc_zh:'保留有旧海军红砖建筑的设施。明治时期建造的珍贵遗迹。'},
-  {layer:'近景',cat:'旧軍港',dist:3.95,b:73.7,  ja:'舞鶴赤れんがパーク',      en:'Red Brick Park',             zh:'舞鹤红砖公园',         desc_ja:'明治35年築の旧海軍倉庫群。国の重要文化財に指定された12棟が立ち並ぶ。',desc_en:'12 Meiji-era naval warehouses designated as Important Cultural Properties.',desc_zh:'建于明治35年的旧海军仓库群，12栋红砖仓库并排而立。'},
-  {layer:'近景',cat:'産業',  dist:3.39,b:55.2,  ja:'ジャパンマリンユナイテッド',en:'Japan Marine United',         zh:'日本海洋联合造船厂',   desc_ja:'造船の街・舞鶴を代表する大型造船所。巨大クレーンが港の景観を特徴づける。',desc_en:'A major shipyard defining Maizuru\'s industrial identity.',desc_zh:'代表造船城市舞鹤的大型造船厂。'},
-  {layer:'近景',cat:'歴史',  dist:1.63,b:240,   ja:'吉原入江（日本のベニス）', en:'Yoshiwara Inlet',            zh:'吉原入江（日本威尼斯）',desc_ja:'入江に舟屋が並ぶ独特の景観が、ヴェネツィアを想起させる地区。',desc_en:'Boathouses lining this inlet evoke the canals of Venice.',desc_zh:'沿入江排列的船屋景观令人联想到威尼斯。'},
-  {layer:'近景',cat:'インフラ',dist:6.35,b:35.7, ja:'舞鶴クレインブリッジ',    en:'Maizuru Crane Bridge',       zh:'舞鹤起重桥',           desc_ja:'全長735mの斜張橋。鶴が羽を広げた優美なフォルムが特徴の景観橋梁。',desc_en:'A 735m cable-stayed bridge, its silhouette echoing a crane spreading wings.',desc_zh:'全长735米的斜拉桥，鹤展翅的优美造型。'},
-  {layer:'近景',cat:'観光',  dist:3.09,b:238.6, ja:'舞鶴港とれとれセンター',  en:'Toretore Fish Market',       zh:'舞鹤港海鲜市场',       desc_ja:'日本海の新鮮な海産物が並ぶ市場。地元の旬の味覚が直売されている。',desc_en:'A lively fish market selling the freshest catch from Maizuru Bay.',desc_zh:'陈列着日本海新鲜海产品的市场。'},
-  {layer:'近景',cat:'島',    dist:3.39,b:31.6,  ja:'蛇島',                    en:'Jajima Island',              zh:'蛇岛',                 desc_ja:'舞鶴湾内に浮かぶ小島。旧海軍の遺構が残る歴史的な島。',desc_en:'A tiny island in Maizuru Bay with old naval structures.',desc_zh:'漂浮在舞鹤湾内保留有旧海军遗迹的小岛。'},
-  {layer:'中景',cat:'港湾',  dist:4.76,b:66.9,  ja:'舞鶴港フェリーターミナル',en:'Ferry Terminal',             zh:'舞鹤港轮渡码头',       desc_ja:'新日本海フェリーが発着する重要港湾。北海道への玄関口として機能している。',desc_en:'Shin Nihonkai Ferry connects Maizuru to Otaru and Tsuruga.',desc_zh:'新日本海轮渡停靠的重要港湾设施。'},
-  {layer:'中景',cat:'歴史',  dist:6.91,b:44,    ja:'舞鶴引揚記念館',          en:'Repatriation Museum',        zh:'舞鹤归国纪念馆',       desc_ja:'戦後の海外引揚げを伝える国立記念館。ユネスコ「世界の記憶」に登録。',desc_en:'A national museum housing UNESCO Memory of the World materials.',desc_zh:'传达战后海外归国者经历的国立纪念馆。'},
-  {layer:'中景',cat:'文化',  dist:11.95,b:72.3, ja:'松尾寺',                  en:'Matsuodera Temple',          zh:'松尾寺',               desc_ja:'西国三十三所第29番札所。奈良時代創建の古刹でボタンの名所。',desc_en:'The 29th pilgrimage site of the Saigoku Kannon Circuit.',desc_zh:'西国三十三所第29番礼所，奈良时代创建的古刹。'},
-  {layer:'中景',cat:'島',    dist:3.45,b:359.2, ja:'戸島（天然記念物）',      en:'Tojima Island',              zh:'户岛（天然纪念物）',   desc_ja:'舞鶴湾の北端に位置する京都府の天然記念物。希少な植生が評価されている。',desc_en:'A Kyoto Prefecture Natural Monument for its rare vegetation.',desc_zh:'京都府天然纪念物，因其珍稀植被而受到评定。'},
-  {layer:'中景',cat:'自然',  dist:7.2, b:315.5, ja:'由良川河口',              en:'Yura River Estuary',         zh:'由良川河口',           desc_ja:'安寿と厨子王の伝説の舞台。渡り鳥の集まる豊かな水辺環境。',desc_en:'Tied to the legend of Anju and Zushiomaru, rich in migratory birds.',desc_zh:'安寿与厨子王传说的舞台，候鸟聚集的水域。'},
-  {layer:'中景',cat:'灯台',  dist:9.29,b:358.9, ja:'博奕岬灯台',              en:'Bakuchi Cape Lighthouse',    zh:'博奕岬灯台',           desc_ja:'若狭湾の入口に立つ歴史ある灯台。船舶の安全を守り続ける航路の要。',desc_en:'A historic lighthouse guarding the entrance to Wakasa Bay.',desc_zh:'矗立在若狭湾入口的历史灯台。'},
-  {layer:'遠景',cat:'島',    dist:25.14,b:16.9, ja:'冠島（神秘の島）',        en:'Kammurijima Island',         zh:'冠岛（神秘之岛）',     desc_ja:'若狭湾に浮かぶ無人島。オオミズナギドリの繁殖地として国の天然記念物。',desc_en:'An uninhabited island, National Natural Monument breeding ground.',desc_zh:'漂浮在若狭湾中的无人岛，国家天然纪念物。'},
-  {layer:'遠景',cat:'文化',  dist:24.26,b:344.7,ja:'伊根の舟屋',              en:'Ine Funaya Boat Houses',     zh:'伊根船屋',             desc_ja:'伊根湾に沿って立ち並ぶ舟屋。重要伝統的建造物群保存地区に選定。',desc_en:'Fishermen\'s boat houses over Ine Bay, a Historic Preservation District.',desc_zh:'沿伊根湾并排而立的船屋，重要传统建筑物群保护地区。'},
-  {layer:'遠景',cat:'山',    dist:13.47,b:70.6, ja:'青葉山（若狭富士）',      en:'Mt. Aobayama',               zh:'青叶山（若狭富士）',   desc_ja:'標高693mの秀麗な双耳峰。その美しい山容から「若狭富士」と称される。',desc_en:'A 693m twin-peaked mountain nicknamed "Wakasa Fuji."',desc_zh:'海拔693m的秀丽双耳峰，被称为"若狭富士"。'},
-  {layer:'遠景',cat:'山',    dist:21.5, b:266.7,ja:'大江山（酒呑童子の伝説）',en:'Mt. Oeyama',                  zh:'大江山（酒吞童子传说）',desc_ja:'酒呑童子の伝説で名高い連峰。丹後の霊山として信仰を集める山岳景観。',desc_en:'Legendary lair of Shuten-Doji, the great demon of Japanese folklore.',desc_zh:'以酒吞童子传说而闻名的山脉。'},
-  {layer:'遠景',cat:'岬',    dist:36.61,b:342.8,ja:'経ヶ岬（丹後半島最北端）',en:'Kyogamisaki Cape',            zh:'经岬（丹后半岛最北端）',desc_ja:'京都府最北端の岬。急峻なリアス式海岸と山中の白い灯台が印象的。',desc_en:'The northernmost point of Kyoto Prefecture, crowned by a white lighthouse.',desc_zh:'京都府最北端的岬角，山中矗立着白色灯台。'},
-  {layer:'超遠景',cat:'霊峰',dist:149.89,b:58.8,ja:'白山（幻の霊峰）',        en:'Mt. Hakusan',                zh:'白山（幻之灵峰）',     desc_ja:'約150km彼方に望む日本三霊山の一つ。晴天時に視認できる「幻の展望」。',desc_en:'One of Japan\'s Three Sacred Mountains, visible ~150km away on clear days.',desc_zh:'约150公里外日本三灵山之一，晴天时可见的"幻之远眺"。'},
-  {layer:'超遠景',cat:'都市',dist:63.45,b:142.5,ja:'京都市（千年の都）',      en:'Kyoto City',                 zh:'京都市（千年古都）',   desc_ja:'約63km南東。世界遺産を多数擁する千年の都。歴史と文化の厚みを感じさせる。',desc_en:'Japan\'s ancient capital, home to countless UNESCO World Heritage sites.',desc_zh:'约63公里东南方向，拥有众多世界遗产的千年古都。'},
-  {layer:'超遠景',cat:'都市',dist:27.14,b:226.5,ja:'福知山市',                en:'Fukuchiyama City',           zh:'福知山市',             desc_ja:'明智光秀が治めた城下町。北近畿の交通・経済の要衝。',desc_en:'Castle town ruled by Akechi Mitsuhide, a key transportation hub.',desc_zh:'明智光秀统治的城下町，北近畿交通经济要地。'},
-  {layer:'超遠景',cat:'都市',dist:15.54,b:300.5,ja:'宮津市（天橋立）',        en:'Miyazu / Amanohashidate',    zh:'宫津市（天桥立）',     desc_ja:'日本三景・天橋立を擁する丹後の中核都市。松林が続く全長3.6kmの砂嘴が絶景。',desc_en:'Home to Amanohashidate, one of Japan\'s Three Views.',desc_zh:'拥有日本三景之一天桥立的丹后核心城市。'},
+  {layer:'近景',cat:'旧軍港',dist:3.35,b:57.5, ja:'海上自衛隊北吸桟橋',     en:'JMSDF Kitasui Pier',        zh:'海上自卫队北吸泊岸',
+   desc_ja:'イージス艦などの護衛艦が停泊する海上自衛隊の桟橋。舞鶴の海軍都市としての歴史を今に伝える現役の軍港施設。',
+   desc_en:'A pier where Aegis destroyers berth, embodying Maizuru\'s centuries-old naval heritage.',
+   desc_zh:'停靠神盾舰等护卫舰的海上自卫队栈桥。'},
+  {layer:'近景',cat:'旧軍港',dist:2.75,b:66.3, ja:'舞鶴地方総監部/海軍記念館', en:'Maizuru Naval Museum',       zh:'舞鹤地方总监部/海军纪念馆',
+   desc_ja:'旧海軍の赤れんが建築が残る施設。明治期の海軍史を物語る貴重な遺構。',
+   desc_en:'Red-brick naval buildings from the Meiji era housing this history museum.',
+   desc_zh:'保留有旧海军红砖建筑的设施。明治时期建造的珍贵遗迹。'},
+  {layer:'近景',cat:'旧軍港',dist:3.95,b:73.7, ja:'舞鶴赤れんがパーク',       en:'Red Brick Park',            zh:'舞鹤红砖公园',
+   desc_ja:'明治35年築の旧海軍倉庫群。国の重要文化財に指定された12棟が立ち並ぶ舞鶴の象徴的景観。',
+   desc_en:'12 Meiji-era naval warehouses designated as Important Cultural Properties.',
+   desc_zh:'建于明治35年的旧海军仓库群，12栋红砖仓库并排而立。'},
+  {layer:'近景',cat:'産業',  dist:3.39,b:55.2, ja:'ジャパンマリンユナイテッド',en:'Japan Marine United',        zh:'日本海洋联合造船厂',
+   desc_ja:'造船の街・舞鶴を代表する大型造船所。巨大クレーンが港の景観を特徴づける。',
+   desc_en:'A major shipyard defining Maizuru\'s industrial skyline with towering cranes.',
+   desc_zh:'代表造船城市舞鹤的大型造船厂。巨型起重机构成港口特色景观。'},
+  {layer:'近景',cat:'歴史',  dist:1.63,b:240,  ja:'吉原入江（日本のベニス）',  en:'Yoshiwara Inlet',           zh:'吉原入江（日本威尼斯）',
+   desc_ja:'入江に舟屋が並ぶ独特の景観が、ヴェネツィアを想起させる地区。京都府の景観資産。',
+   desc_en:'Boathouses lining this inlet evoke the canals of Venice, Italy.',
+   desc_zh:'沿入江排列的船屋景观令人联想到威尼斯，京都府景观资产。'},
+  {layer:'近景',cat:'インフラ',dist:6.35,b:35.7,ja:'舞鶴クレインブリッジ',     en:'Maizuru Crane Bridge',      zh:'舞鹤起重桥',
+   desc_ja:'全長735mの斜張橋。鶴が羽を広げた優美なフォルムが特徴で、引揚の歴史を象徴する橋。',
+   desc_en:'A 735m cable-stayed bridge whose silhouette echoes a crane spreading its wings.',
+   desc_zh:'全长735米的斜拉桥，鹤展翅的优美造型象征引扬港舞鹤的历史。'},
+  {layer:'近景',cat:'観光',  dist:3.09,b:238.6,ja:'舞鶴港とれとれセンター',   en:'Toretore Fish Market',      zh:'舞鹤港海鲜市场',
+   desc_ja:'日本海の新鮮な海産物が並ぶ市場。舞鶴湾のカニ・ブリ・サバなど旬の味覚を直売。',
+   desc_en:'A lively fish market selling the freshest catch from Maizuru Bay.',
+   desc_zh:'陈列着日本海新鲜海产品的市场，当季海味直接出售。'},
+  {layer:'近景',cat:'島',    dist:3.39,b:31.6, ja:'蛇島',                     en:'Jajima Island',             zh:'蛇岛',
+   desc_ja:'舞鶴湾内に浮かぶ小島。旧海軍の遺構が残り、湾の要衝として重要な役割を果たした歴史的な島。',
+   desc_en:'A tiny island in Maizuru Bay with old naval structures.',
+   desc_zh:'漂浮在舞鹤湾内保留有旧海军遗迹的小岛。'},
+  {layer:'中景',cat:'港湾',  dist:4.76,b:66.9, ja:'舞鶴港フェリーターミナル', en:'Ferry Terminal',            zh:'舞鹤港轮渡码头',
+   desc_ja:'新日本海フェリーが発着する重要港湾。舞鶴〜小樽・敦賀便が運航し、北海道への玄関口。',
+   desc_en:'Shin Nihonkai Ferry connects Maizuru to Otaru and Tsuruga.',
+   desc_zh:'新日本海轮渡停靠的重要港湾，是通往北海道的门户。'},
+  {layer:'中景',cat:'歴史',  dist:6.91,b:44,   ja:'舞鶴引揚記念館',           en:'Repatriation Museum',       zh:'舞鹤归国纪念馆',
+   desc_ja:'戦後の海外引揚げを伝える国立記念館。ユネスコ「世界の記憶」に登録された資料を収蔵。',
+   desc_en:'A national museum housing UNESCO Memory of the World materials on post-war repatriation.',
+   desc_zh:'传达战后海外归国者经历的国立纪念馆。'},
+  {layer:'中景',cat:'文化',  dist:11.95,b:72.3,ja:'松尾寺',                   en:'Matsuodera Temple',         zh:'松尾寺',
+   desc_ja:'西国三十三所第29番札所。奈良時代創建の古刹でボタンの名所としても知られる。',
+   desc_en:'The 29th pilgrimage site of the Saigoku Kannon Circuit, famous for peonies.',
+   desc_zh:'西国三十三所第29番礼所，奈良时代创建的古刹。'},
+  {layer:'中景',cat:'島',    dist:3.45,b:359.2,ja:'戸島（天然記念物）',        en:'Tojima Island',             zh:'户岛（天然纪念物）',
+   desc_ja:'舞鶴湾の北端に位置する京都府の天然記念物。希少な植生が評価されている。',
+   desc_en:'A Kyoto Prefecture Natural Monument for its rare coastal vegetation.',
+   desc_zh:'京都府天然纪念物，因其珍稀植被而受到评定。'},
+  {layer:'中景',cat:'自然',  dist:7.2, b:315.5,ja:'由良川河口',               en:'Yura River Estuary',        zh:'由良川河口',
+   desc_ja:'安寿と厨子王の伝説の舞台。渡り鳥の集まる豊かな水辺環境。',
+   desc_en:'Tied to the legend of Anju and Zushiomaru, rich in migratory birds.',
+   desc_zh:'安寿与厨子王传说的舞台，候鸟聚集的丰富水域。'},
+  {layer:'中景',cat:'灯台',  dist:9.29,b:358.9,ja:'博奕岬灯台',               en:'Bakuchi Cape Lighthouse',   zh:'博奕岬灯台',
+   desc_ja:'若狭湾の入口に立つ歴史ある灯台。船舶の安全を守り続ける航路の要。',
+   desc_en:'A historic lighthouse guarding the entrance to Wakasa Bay.',
+   desc_zh:'矗立在若狭湾入口的历史灯台。'},
+  {layer:'遠景',cat:'島',    dist:25.14,b:16.9,ja:'冠島（神秘の島）',          en:'Kammurijima Island',        zh:'冠岛（神秘之岛）',
+   desc_ja:'若狭湾に浮かぶ無人島。オオミズナギドリの繁殖地として国の天然記念物に指定。',
+   desc_en:'An uninhabited island, National Natural Monument breeding ground of shearwaters.',
+   desc_zh:'漂浮在若狭湾中的无人岛，国家天然纪念物。'},
+  {layer:'遠景',cat:'文化',  dist:24.26,b:344.7,ja:'伊根の舟屋',              en:'Ine Funaya Boat Houses',    zh:'伊根船屋',
+   desc_ja:'伊根湾に沿って立ち並ぶ舟屋。重要伝統的建造物群保存地区に選定。',
+   desc_en:'Fishermen\'s boat houses over Ine Bay, a Historic Preservation District.',
+   desc_zh:'沿伊根湾并排而立的船屋，重要传统建筑物群保护地区。'},
+  {layer:'遠景',cat:'山',    dist:13.47,b:70.6,ja:'青葉山（若狭富士）',        en:'Mt. Aobayama',              zh:'青叶山（若狭富士）',
+   desc_ja:'標高693mの秀麗な双耳峰。その美しい山容から「若狭富士」と称される霊峰。',
+   desc_en:'A 693m twin-peaked mountain nicknamed "Wakasa Fuji."',
+   desc_zh:'海拔693m的秀丽双耳峰，被称为"若狭富士"。'},
+  {layer:'遠景',cat:'山',    dist:21.5, b:266.7,ja:'大江山（酒呑童子の伝説）', en:'Mt. Oeyama',                zh:'大江山',
+   desc_ja:'酒呑童子の伝説で名高い連峰。源頼光による鬼退治の伝説が語り継がれる。',
+   desc_en:'Legendary lair of Shuten-Doji, the great demon of Japanese folklore.',
+   desc_zh:'以酒吞童子传说而闻名的山脉。'},
+  {layer:'遠景',cat:'岬',    dist:36.61,b:342.8,ja:'経ヶ岬（丹後半島最北端）', en:'Kyogamisaki Cape',          zh:'经岬（丹后半岛最北端）',
+   desc_ja:'京都府最北端の岬。急峻なリアス式海岸と山中に立つ白い灯台が印象的。',
+   desc_en:'The northernmost point of Kyoto Prefecture, crowned by a white lighthouse.',
+   desc_zh:'京都府最北端的岬角，山中矗立着白色灯台。'},
+  {layer:'超遠景',cat:'霊峰',dist:149.89,b:58.8,ja:'白山（幻の霊峰）',         en:'Mt. Hakusan',               zh:'白山（幻之灵峰）',
+   desc_ja:'約150km彼方に望む日本三霊山の一つ。晴天時に五老スカイタワーから視認できる幻の展望。',
+   desc_en:'One of Japan\'s Three Sacred Mountains, visible ~150km away on clear days.',
+   desc_zh:'约150公里外日本三灵山之一，晴天时可见的"幻之远眺"。'},
+  {layer:'超遠景',cat:'都市',dist:63.45,b:142.5,ja:'京都市',                  en:'Kyoto City',                zh:'京都市',
+   desc_ja:'約63km南東。千年の都。世界遺産を多数擁する日本を代表する古都。',
+   desc_en:'Japan\'s ancient capital with countless UNESCO World Heritage sites, 63km away.',
+   desc_zh:'约63公里东南方向，拥有众多世界遗产的千年古都。'},
+  {layer:'超遠景',cat:'都市',dist:27.14,b:226.5,ja:'福知山市',                en:'Fukuchiyama City',          zh:'福知山市',
+   desc_ja:'明智光秀が治めた城下町。福知山城が聳え、北近畿の交通・経済の要衝。',
+   desc_en:'Castle town ruled by Akechi Mitsuhide, a key transportation hub.',
+   desc_zh:'明智光秀统治的城下町，北近畿交通经济要地。'},
+  {layer:'超遠景',cat:'都市',dist:15.54,b:300.5,ja:'宮津市（天橋立）',         en:'Miyazu / Amanohashidate',   zh:'宫津市（天桥立）',
+   desc_ja:'日本三景・天橋立を擁する丹後の中核都市。全長3.6kmの松林砂嘴が絶景。',
+   desc_en:'Home to Amanohashidate, one of Japan\'s Three Views.',
+   desc_zh:'拥有日本三景之一天桥立的丹后核心城市。'}
 ];
 
 var DIRS_JA = ['北','北北東','北東','東北東','東','東南東','南東','南南東','南','南南西','南西','西南西','西','西北西','北西','北北西'];
 var DIRS_EN = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-var DIRS_ZH = ['北','北北东','北东','东北东','东','东南东','南东','南南东','南','南南西','南西','西南西','西','西北西','北西','北北西'];
 
-function startGyro() {
-  window.addEventListener('deviceorientation', function(e) {
-    if(e.alpha !== null && !dragging) {
-      bearing = e.alpha;
-      if(view === 'ar') { renderAR(); updateHUD(); }
-    }
-  }, false);
-}
-
-function handleGyroBtn() {
-  var ov = document.getElementById('gyro-overlay');
-  if(typeof DeviceOrientationEvent !== 'undefined' &&
-     typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission().then(function(state) {
-      if(state === 'granted') { startGyro(); }
-      else { document.getElementById('gyro-btn').textContent = '許可してください'; return; }
-      ov.style.display = 'none';
-      document.getElementById('ar').style.pointerEvents = 'auto';
-    }).catch(function() {
-      startGyro();
-      ov.style.display = 'none';
-      document.getElementById('ar').style.pointerEvents = 'auto';
-    });
-  } else {
-    startGyro();
-    ov.style.display = 'none';
-    document.getElementById('ar').style.pointerEvents = 'auto';
-  }
-}
-
-function handleGyroSkip() {
-  document.getElementById('gyro-overlay').style.display = 'none';
-  document.getElementById('ar').style.pointerEvents = 'auto';
-}
-
-// ── STATE ──
+// ==============================
+// STATE
+// ==============================
 var lang = 'ja';
 var bearing = 30;
 var view = 'ar';
-var activeL = {近景:true, 中景:true, 遠景:true, 超遠景:true};
+var activeL = {近景:true,中景:true,遠景:true,超遠景:true};
 var FOV = 110;
-var W, H;
+var W = window.innerWidth;
+var H = window.innerHeight;
+var dragging = false;
+var lastTX = 0;
+var vel = 0;
+var gyroActive = false;
+var leafMap = null;
+var leafMarkers = [];
 
-function getSize() {
+function getWH() {
   W = window.innerWidth || document.documentElement.clientWidth;
   H = window.innerHeight || document.documentElement.clientHeight;
 }
-getSize();
 
-// ── HUD ──
-function getDirLabel(deg) {
+// ==============================
+// HUD
+// ==============================
+function dirLabel(deg) {
   var d = ((deg % 360) + 360) % 360;
   var i = Math.round(d / 22.5) % 16;
-  if(lang==='en') return DIRS_EN[i];
-  if(lang==='zh') return DIRS_ZH[i];
-  return DIRS_JA[i];
+  return lang === 'en' ? DIRS_EN[i] : DIRS_JA[i];
 }
-
 function updateHUD() {
-  var deg = Math.round(((bearing % 360) + 360) % 360);
-  document.getElementById('hdeg').textContent = deg + '°';
-  document.getElementById('hdir').textContent = getDirLabel(deg);
+  var d = Math.round(((bearing % 360) + 360) % 360);
+  document.getElementById('hdeg').textContent = d + '°';
+  document.getElementById('hdir').textContent = dirLabel(d);
 }
 
-// ── RENDER AR ──
-function bearingToX(b) {
-  var diff = b - bearing;
-  while(diff > 180) diff -= 360;
-  while(diff < -180) diff += 360;
-  return (W / 2) + (diff / FOV) * W;
-}
-
-function layerY(layer) {
-  var map = {近景: 0.50, 中景: 0.42, 遠景: 0.36, 超遠景: 0.30};
-  return H * (map[layer] || 0.42);
-}
-
-function stemH(layer) {
-  var map = {近景: 42, 中景: 28, 遠景: 16, 超遠景: 8};
-  return map[layer] || 22;
-}
-
+// ==============================
+// NAME
+// ==============================
 function getName(s) {
-  if(lang==='en') return s.en;
-  if(lang==='zh') return s.zh;
-  return s.ja;
+  return lang === 'en' ? s.en : lang === 'zh' ? s.zh : s.ja;
+}
+function getDesc(s) {
+  return lang === 'en' ? s.desc_en : lang === 'zh' ? s.desc_zh : s.desc_ja;
+}
+
+// ==============================
+// AR RENDER
+// ==============================
+function bToX(b) {
+  var diff = b - bearing;
+  while (diff > 180) diff -= 360;
+  while (diff < -180) diff += 360;
+  return W / 2 + (diff / FOV) * W;
+}
+function layerY(l) {
+  return H * ({近景:.50,中景:.42,遠景:.36,超遠景:.30}[l] || .42);
+}
+function stemH(l) {
+  return {近景:40,中景:26,遠景:15,超遠景:7}[l] || 20;
 }
 
 function renderAR() {
-  getSize();
+  getWH();
   var ar = document.getElementById('ar');
   ar.innerHTML = '';
   var count = 0;
 
-  // Collect visible spots
-  var visible = [];
-  for(var i = 0; i < SPOTS.length; i++) {
+  // Build visible list
+  var vis = [];
+  for (var i = 0; i < SPOTS.length; i++) {
     var s = SPOTS[i];
-    if(!activeL[s.layer]) continue;
-    var x = bearingToX(s.b);
-    if(x < -120 || x > W + 120) continue;
-    visible.push({
-      s: s,
-      anchorX: x,   // original x (pin dot stays here)
-      anchorY: layerY(s.layer),
-      labelX: x,    // label position (will be adjusted)
-      labelY: layerY(s.layer),
-      sh: stemH(s.layer),
-      w: 130, h: 28  // approx label size
-    });
+    if (!activeL[s.layer]) continue;
+    var x = bToX(s.b);
+    if (x < -100 || x > W + 100) continue;
+    vis.push({s:s, ax:x, ay:layerY(s.layer), lx:x, ly:layerY(s.layer), sh:stemH(s.layer)});
   }
 
-  // Multi-pass collision avoidance for labels
-  var PASS = 8;
-  for(var p = 0; p < PASS; p++) {
-    for(var ci = 0; ci < visible.length; ci++) {
-      for(var cj = ci + 1; cj < visible.length; cj++) {
-        var a = visible[ci], b = visible[cj];
-        var overlapX = (a.w + b.w) / 2 - Math.abs(a.labelX - b.labelX);
-        var overlapY = (a.h + b.h) / 2 + 6 - Math.abs(a.labelY - b.labelY);
-        if(overlapX > 0 && overlapY > 0) {
-          // Push apart — prefer vertical separation
-          var dy = a.labelY < b.labelY ? -1 : 1;
-          var dx = a.labelX < b.labelX ? -1 : 1;
-          if(overlapY < overlapX) {
-            // vertical push
-            a.labelY -= dy * (overlapY / 2 + 2);
-            b.labelY += dy * (overlapY / 2 + 2);
+  // Collision avoidance (8 passes)
+  for (var p = 0; p < 8; p++) {
+    for (var ci = 0; ci < vis.length; ci++) {
+      for (var cj = ci + 1; cj < vis.length; cj++) {
+        var a = vis[ci], b = vis[cj];
+        var ox = 130 - Math.abs(a.lx - b.lx);
+        var oy = 32 - Math.abs(a.ly - b.ly);
+        if (ox > 0 && oy > 0) {
+          if (oy < ox) {
+            var dy = a.ly <= b.ly ? -1 : 1;
+            a.ly -= dy * (oy / 2 + 2);
+            b.ly += dy * (oy / 2 + 2);
           } else {
-            // horizontal push
-            a.labelX -= dx * (overlapX / 2 + 2);
-            b.labelX += dx * (overlapX / 2 + 2);
+            var dx = a.lx <= b.lx ? -1 : 1;
+            a.lx -= dx * (ox / 2 + 2);
+            b.lx += dx * (ox / 2 + 2);
           }
         }
       }
     }
   }
 
-  for(var vi = 0; vi < visible.length; vi++) {
-    var item = visible[vi];
-    var s = item.s;
-    var x = item.anchorX;
+  // Render
+  for (var vi = 0; vi < vis.length; vi++) {
+    var item = vis[vi];
     count++;
-    var y = item.anchorY;
-    var sh = item.sh;
-
-    // Wrapper at anchor point (dot)
     var pin = document.createElement('div');
     pin.className = 'pin';
-    pin.setAttribute('data-l', s.layer);
-    pin.style.cssText = 'position:absolute;left:' + Math.round(item.anchorX) + 'px;top:' + Math.round(item.anchorY) + 'px;transform:none;';
+    pin.setAttribute('data-l', item.s.layer);
+    pin.style.left = '0';
+    pin.style.top = '0';
 
     // Dot at anchor
     var dot = document.createElement('div');
     dot.className = 'pdot';
-    dot.style.cssText = 'position:absolute;left:-4px;top:-4px;';
+    dot.style.left = Math.round(item.ax) - 4 + 'px';
+    dot.style.top = Math.round(item.ay) - 4 + 'px';
     pin.appendChild(dot);
 
-    // Label offset from anchor
-    var lOffX = Math.round(item.labelX - item.anchorX);
-    var lOffY = Math.round(item.labelY - item.anchorY);
+    // Stem above dot
+    var stem = document.createElement('div');
+    stem.className = 'pstem';
+    stem.style.left = Math.round(item.ax) + 'px';
+    stem.style.top = Math.round(item.ay - item.sh) + 'px';
+    stem.style.height = item.sh + 'px';
+    pin.appendChild(stem);
+
+    // Label at adjusted position
     var lbl = document.createElement('div');
     lbl.className = 'plabel';
-    lbl.textContent = getName(s);
-    lbl.style.cssText = 'position:absolute;left:' + lOffX + 'px;top:' + lOffY + 'px;transform:translateX(-50%);white-space:nowrap;';
+    lbl.textContent = getName(item.s);
+    lbl.style.left = Math.round(item.lx) + 'px';
+    lbl.style.top = Math.round(item.ly - item.sh - 28) + 'px';
     pin.appendChild(lbl);
 
-    // Connector line from dot to label (SVG)
-    var dist = Math.sqrt(lOffX*lOffX + lOffY*lOffY);
-    if(dist > 8) {
+    // Connector if label moved far from anchor
+    var ldx = item.lx - item.ax;
+    var ldy = (item.ly - item.sh - 14) - (item.ay - item.sh);
+    if (Math.abs(ldx) > 15 || Math.abs(ldy) > 15) {
       var svgNS = 'http://www.w3.org/2000/svg';
       var sv = document.createElementNS(svgNS, 'svg');
-      var pw = Math.abs(lOffX) + 4, ph = Math.abs(lOffY) + 4;
-      var ox = lOffX < 0 ? -lOffX + 2 : 2;
-      var oy = lOffY < 0 ? -lOffY + 2 : 2;
-      sv.setAttribute('width', pw); sv.setAttribute('height', ph);
-      sv.style.cssText = 'position:absolute;left:' + (lOffX < 0 ? lOffX - 2 : -2) + 'px;top:' + (lOffY < 0 ? lOffY - 2 : -2) + 'px;pointer-events:none;overflow:visible;';
+      sv.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible;';
       var ln = document.createElementNS(svgNS, 'line');
-      ln.setAttribute('x1', ox); ln.setAttribute('y1', oy);
-      ln.setAttribute('x2', ox + lOffX); ln.setAttribute('y2', oy + lOffY);
-      ln.setAttribute('stroke', 'rgba(255,255,255,0.25)');
+      ln.setAttribute('x1', item.ax);
+      ln.setAttribute('y1', item.ay - item.sh);
+      ln.setAttribute('x2', item.lx);
+      ln.setAttribute('y2', item.ly - item.sh - 14);
+      ln.setAttribute('stroke', 'rgba(255,255,255,0.2)');
       ln.setAttribute('stroke-width', '1');
       ln.setAttribute('stroke-dasharray', '3,2');
       sv.appendChild(ln);
       pin.appendChild(sv);
     }
 
-    // Stem (short vertical above dot)
-    var stem = document.createElement('div');
-    stem.className = 'pstem';
-    stem.style.cssText = 'position:absolute;left:0px;top:' + (-sh) + 'px;height:' + sh + 'px;width:1px;';
-    pin.appendChild(stem);
-
-    // Use closure to capture s - use touchend for iOS (click suppressed by preventDefault)
     (function(spot) {
-      var tStartX = 0, tStartY = 0;
+      // tap detection: touchend with small movement
+      var tsx = 0, tsy = 0;
       pin.addEventListener('touchstart', function(e) {
-        tStartX = e.touches[0].clientX;
-        tStartY = e.touches[0].clientY;
-        e.stopPropagation();
-      }, {passive:true});
+        tsx = e.touches[0].clientX;
+        tsy = e.touches[0].clientY;
+      }, true);
       pin.addEventListener('touchend', function(e) {
-        var dx = Math.abs(e.changedTouches[0].clientX - tStartX);
-        var dy = Math.abs(e.changedTouches[0].clientY - tStartY);
-        if(dx < 10 && dy < 10) {
+        if (Math.abs(e.changedTouches[0].clientX - tsx) < 12 &&
+            Math.abs(e.changedTouches[0].clientY - tsy) < 12) {
           e.stopPropagation();
-          e.preventDefault();
           openPanel(spot);
         }
-      }, {passive:false});
+      }, true);
       pin.addEventListener('click', function(e) {
         e.stopPropagation();
         openPanel(spot);
       });
-    })(s);
+    })(item.s);
 
     ar.appendChild(pin);
-  } // end visible loop
-
-  // Labels centered via CSS transform
+  }
 
   document.getElementById('ct').textContent = count + ' スポットを表示中';
 }
 
-// ── RENDER MAP (Leaflet) ──
-var leafletMap = null;
-var leafletMarkers = [];
-
-// Approximate lat/lon from bearing and distance
-function bearingDistToLatLon(bearing, distKm) {
+// ==============================
+// MAP
+// ==============================
+function bdToLatLon(b, d) {
   var R = 6371;
   var lat1 = BASE_LAT * Math.PI / 180;
   var lon1 = BASE_LON * Math.PI / 180;
-  var brng = bearing * Math.PI / 180;
-  var d = distKm / R;
-  var lat2 = Math.asin(Math.sin(lat1)*Math.cos(d) + Math.cos(lat1)*Math.sin(d)*Math.cos(brng));
-  var lon2 = lon1 + Math.atan2(Math.sin(brng)*Math.sin(d)*Math.cos(lat1), Math.cos(d)-Math.sin(lat1)*Math.sin(lat2));
-  return [lat2 * 180/Math.PI, lon2 * 180/Math.PI];
+  var br = b * Math.PI / 180;
+  var dr = d / R;
+  var lat2 = Math.asin(Math.sin(lat1) * Math.cos(dr) + Math.cos(lat1) * Math.sin(dr) * Math.cos(br));
+  var lon2 = lon1 + Math.atan2(Math.sin(br) * Math.sin(dr) * Math.cos(lat1), Math.cos(dr) - Math.sin(lat1) * Math.sin(lat2));
+  return [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
 }
 
-var BASE_LAT = 35.464806, BASE_LON = 135.343583;
-var SPOT_COORDS = SPOTS.map(function(s) {
-  return bearingDistToLatLon(s.b, s.dist);
-});
-
-var LAYER_COLORS = {近景:'#5bc8ff', 中景:'#3de8c8', 遠景:'#a78bfa', 超遠景:'#f472b6'};
+var COLS = {近景:'#5bc8ff',中景:'#3de8c8',遠景:'#a78bfa',超遠景:'#f472b6'};
 
 function renderMap() {
-  var mv = document.getElementById('mapview');
-
-  if(!leafletMap) {
-    // Create map container
-    var mapDiv = document.createElement('div');
-    mapDiv.id = 'leaflet-map';
-    mv.appendChild(mapDiv);
-
-    // Init Leaflet
-    leafletMap = L.map('leaflet-map', {
-      center: [BASE_LAT, BASE_LON],
-      zoom: 11,
-      zoomControl: true,
-      attributionControl: false
-    });
-
-    // Dark tile layer (OpenStreetMap)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 18,
-      subdomains: 'abcd'
-    }).addTo(leafletMap);
-
-    // Tower marker
-    var towerIcon = L.divIcon({
-      html: '<div style="width:14px;height:14px;border-radius:50%;background:#ffd740;border:3px solid #fff;box-shadow:0 0 12px rgba(255,215,64,.7);"></div>',
-      className: '',
-      iconSize: [14,14],
-      iconAnchor: [7,7]
-    });
-    L.marker([BASE_LAT, BASE_LON], {icon: towerIcon})
-      .bindTooltip('五老スカイタワー', {permanent:true, direction:'top', className:'tower-tip', offset:[0,-8]})
-      .addTo(leafletMap);
-
-    // Add tooltip CSS
-    var style = document.createElement('style');
-    style.textContent = '.tower-tip{background:rgba(0,0,0,.75);border:1px solid #ffd740;color:#ffd740;font-size:11px;font-weight:700;border-radius:8px;padding:2px 8px;white-space:nowrap;box-shadow:none;}.tower-tip::before{display:none;}';
-    document.head.appendChild(style);
+  if (!leafMap) {
+    leafMap = L.map('leafmap', {center:[BASE_LAT, BASE_LON], zoom:10, zoomControl:true, attributionControl:false});
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:18, subdomains:'abcd'}).addTo(leafMap);
+    var ti = L.divIcon({html:'<div style="width:14px;height:14px;border-radius:50%;background:#ffd740;border:3px solid #fff;box-shadow:0 0 12px rgba(255,215,64,.7);"></div>',className:'',iconSize:[14,14],iconAnchor:[7,7]});
+    L.marker([BASE_LAT, BASE_LON], {icon:ti}).bindTooltip('五老スカイタワー', {permanent:true, direction:'top', className:'lf-tower', offset:[0,-8]}).addTo(leafMap);
   }
-
-  // Clear old markers
-  leafletMarkers.forEach(function(m){ leafletMap.removeLayer(m); });
-  leafletMarkers = [];
-
-  // Add spot markers
-  SPOTS.forEach(function(s, i) {
-    if(!activeL[s.layer]) return;
-    var coords = SPOT_COORDS[i];
-    var color = LAYER_COLORS[s.layer] || '#fff';
-
-    var icon = L.divIcon({
-      html: '<div style="width:10px;height:10px;border-radius:50%;background:'+color+';border:2px solid rgba(255,255,255,.6);box-shadow:0 0 8px '+color+';"></div>',
-      className: '',
-      iconSize: [10,10],
-      iconAnchor: [5,5]
-    });
-
-    var marker = L.marker(coords, {icon: icon}).addTo(leafletMap);
-    marker.on('click', function() { openPanel(s); });
-    marker.bindTooltip(getName(s), {direction:'top', offset:[0,-6], className:'spot-tip-'+s.layer});
-    leafletMarkers.push(marker);
+  leafMarkers.forEach(function(m) { leafMap.removeLayer(m); });
+  leafMarkers = [];
+  var rings = [{km:5,c:'#5bc8ff'},{km:15,c:'#3de8c8'},{km:40,c:'#a78bfa'},{km:150,c:'#f472b6'}];
+  rings.forEach(function(r) {
+    var ci = L.circle([BASE_LAT, BASE_LON], {radius:r.km*1000, color:r.c, weight:1, opacity:.2, fillOpacity:0, dashArray:'4,4'}).addTo(leafMap);
+    leafMarkers.push(ci);
   });
-
-  // Add range circles
-  var ringDefs = [{km:5,color:'#5bc8ff'},{km:15,color:'#3de8c8'},{km:40,color:'#a78bfa'},{km:150,color:'#f472b6'}];
-  ringDefs.forEach(function(r) {
-    var circle = L.circle([BASE_LAT, BASE_LON], {
-      radius: r.km * 1000,
-      color: r.color,
-      weight: 1,
-      opacity: 0.2,
-      fillOpacity: 0,
-      dashArray: '4,4'
-    }).addTo(leafletMap);
-    leafletMarkers.push(circle);
+  SPOTS.forEach(function(s) {
+    if (!activeL[s.layer]) return;
+    var c = bdToLatLon(s.b, s.dist);
+    var col = COLS[s.layer] || '#fff';
+    var di = L.divIcon({html:'<div style="width:10px;height:10px;border-radius:50%;background:'+col+';border:2px solid rgba(255,255,255,.5);box-shadow:0 0 6px '+col+';"></div>',className:'',iconSize:[10,10],iconAnchor:[5,5]});
+    var mk = L.marker(c, {icon:di}).addTo(leafMap);
+    mk.bindTooltip(getName(s), {direction:'top', offset:[0,-6], className:'lf-tip'});
+    (function(spot) { mk.on('click', function() { openPanel(spot); }); })(s);
+    leafMarkers.push(mk);
   });
-
-  // Add tooltip styles for spots
-  var tipStyle = document.createElement('style');
-  tipStyle.textContent = [
-    '.spot-tip-近景,.spot-tip-中景,.spot-tip-遠景,.spot-tip-超遠景{background:rgba(0,0,0,.75);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:11px;border-radius:8px;padding:2px 8px;white-space:nowrap;box-shadow:none;}',
-    '.spot-tip-近景::before,.spot-tip-中景::before,.spot-tip-遠景::before,.spot-tip-超遠景::before{display:none;}'
-  ].join('');
-  document.head.appendChild(tipStyle);
-
-  // Invalidate size after show (Leaflet needs this)
-  setTimeout(function(){ leafletMap.invalidateSize(); }, 100);
+  setTimeout(function() { leafMap.invalidateSize(); }, 150);
 }
 
-// ── PANEL ──
-// Wikipedia画像取得
-function fetchWikiImage(name, callback) {
-  // 検索キーワードを整理（括弧内を除去してシンプルに）
-  var query = name.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '').trim();
-  var url = 'https://ja.wikipedia.org/w/api.php?action=query&titles=' +
-    encodeURIComponent(query) +
-    '&prop=pageimages&pithumbsize=600&format=json&origin=*';
-
-  try { fetch(url)
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      var pages = data.query && data.query.pages;
-      if(!pages) { callback(null); return; }
-      var page = Object.values(pages)[0];
-      if(page && page.thumbnail) {
-        callback(page.thumbnail.source);
-      } else {
-        // 英語版も試す
-        var urlEn = 'https://en.wikipedia.org/w/api.php?action=query&titles=' +
-          encodeURIComponent(query) +
-          '&prop=pageimages&pithumbsize=600&format=json&origin=*';
-        fetch(urlEn)
-          .then(function(r2){ return r2.json(); })
-          .then(function(d2){
-            var p2 = d2.query && d2.query.pages;
-            var pg2 = p2 && Object.values(p2)[0];
-            callback(pg2 && pg2.thumbnail ? pg2.thumbnail.source : null);
-          })
-          .catch(function(){ callback(null); });
-      }
-    })
-    .catch(function(){ callback(null); });
-  } catch(e) { callback(null); }
-}
-
+// ==============================
+// PANEL
+// ==============================
 function openPanel(s) {
   document.getElementById('pname').textContent = getName(s);
-  document.getElementById('pdesc').textContent =
-    (lang==='en'? s.desc_en : lang==='zh'? s.desc_zh : s.desc_ja) || '';
-
-  var layerLabel = {近景:'近景',中景:'中景',遠景:'遠景',超遠景:'超遠景'}[s.layer] || s.layer;
+  document.getElementById('pdesc').textContent = getDesc(s) || '';
+  var ll = {近景:'近景',中景:'中景',遠景:'遠景',超遠景:'超遠景'}[s.layer] || s.layer;
   document.getElementById('ptags').innerHTML =
-    '<span class="tag tagh">'+layerLabel+'</span>' +
-    '<span class="tag">'+s.cat+'</span>' +
-    (s.dist ? '<span class="tag">'+s.dist+'km</span>' : '');
-
-  if(s.dist && s.b) {
-    var dirLabel = getDirLabel(s.b);
+    '<span class="tag tagh">' + ll + '</span>' +
+    '<span class="tag">' + s.cat + '</span>' +
+    (s.dist ? '<span class="tag">' + s.dist + 'km</span>' : '');
+  if (s.dist && s.b) {
+    var dl = dirLabel(s.b);
     document.getElementById('pstats').innerHTML =
-      '<div><div class="sv">'+s.dist+'km</div><div class="sl">距離</div></div>' +
-      '<div><div class="sv">'+Math.round(s.b)+'°</div><div class="sl">方位角</div></div>' +
-      '<div><div class="sv">'+dirLabel+'</div><div class="sl">方角</div></div>';
+      '<div><div class="sv">' + s.dist + 'km</div><div class="sl">距離</div></div>' +
+      '<div><div class="sv">' + Math.round(s.b) + '°</div><div class="sl">方位角</div></div>' +
+      '<div><div class="sv">' + dl + '</div><div class="sl">方角</div></div>';
   } else {
     document.getElementById('pstats').innerHTML = '';
   }
-
-  // 画像エリアをローディング状態に
-  var imgWrap = document.getElementById('p-img-wrap');
-  imgWrap.innerHTML = '<div style="width:100%;height:160px;border-radius:12px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:13px;margin-bottom:14px;">画像を読み込み中...</div>';
-
+  // Reset image
+  var pimg = document.getElementById('pimg');
+  var pload = document.getElementById('pimgload');
+  pimg.style.display = 'none';
+  pload.textContent = '画像を読み込み中...';
   document.getElementById('panel').classList.add('open');
-
-  // Wikipediaから画像取得
-  fetchWikiImage(s.ja, function(imgUrl) {
-    if(imgUrl) {
-      imgWrap.innerHTML = '<img src="'+imgUrl+'" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:14px;display:block;" onerror="this.parentNode.innerHTML=''"/>';
+  // Fetch Wikipedia image
+  fetchWikiImg(s.ja, function(url) {
+    if (url) {
+      pimg.onload = function() { pimg.style.display = 'block'; pload.textContent = ''; };
+      pimg.onerror = function() { pload.textContent = ''; };
+      pimg.src = url;
     } else {
-      imgWrap.innerHTML = '';
+      pload.textContent = '';
     }
   });
 }
 
+function fetchWikiImg(name, cb) {
+  var q = name.replace(/（[^）]*）/g, '').replace(/\s*[\(（].*?[\)）]\s*/g, '').trim();
+  var url = 'https://ja.wikipedia.org/w/api.php?action=query&titles=' + encodeURIComponent(q) + '&prop=pageimages&pithumbsize=600&format=json&origin=*';
+  fetch(url).then(function(r) { return r.json(); }).then(function(d) {
+    var pg = d.query && d.query.pages && Object.values(d.query.pages)[0];
+    if (pg && pg.thumbnail) { cb(pg.thumbnail.source); }
+    else { cb(null); }
+  }).catch(function() { cb(null); });
+}
+
+// Close panel
+document.getElementById('pclose').addEventListener('click', function() {
+  document.getElementById('panel').classList.remove('open');
+});
 document.getElementById('pclose').addEventListener('touchend', function(e) {
   e.preventDefault();
   document.getElementById('panel').classList.remove('open');
 });
-document.getElementById('pclose').addEventListener('click', function() {
-  document.getElementById('panel').classList.remove('open');
-});
 
-// ── TOUCH / DRAG ──
-var dragging = false, lastTX = 0, vel = 0;
-
-document.getElementById('ar').addEventListener('touchstart', function(e) {
+// ==============================
+// TOUCH / SWIPE on AR
+// ==============================
+var arEl = document.getElementById('ar');
+arEl.addEventListener('touchstart', function(e) {
+  if (e.target.closest('#panel')) return;
   dragging = true;
   lastTX = e.touches[0].clientX;
   vel = 0;
-}, false);
+}, {passive:true});
 
-document.getElementById('ar').addEventListener('touchmove', function(e) {
-  if(!dragging) return;
+arEl.addEventListener('touchmove', function(e) {
+  if (!dragging) return;
   e.preventDefault();
   var dx = e.touches[0].clientX - lastTX;
   vel = dx;
@@ -793,31 +613,26 @@ document.getElementById('ar').addEventListener('touchmove', function(e) {
   lastTX = e.touches[0].clientX;
   renderAR();
   updateHUD();
-}, {passive: false});
+}, {passive:false});
 
-document.getElementById('ar').addEventListener('touchend', function() {
+arEl.addEventListener('touchend', function() {
   dragging = false;
   inertia();
-}, false);
+}, {passive:true});
 
-// Mouse fallback
-document.getElementById('ar').addEventListener('mousedown', function(e) {
-  dragging = true; lastTX = e.clientX; vel = 0;
-});
+arEl.addEventListener('mousedown', function(e) { dragging = true; lastTX = e.clientX; vel = 0; });
 document.addEventListener('mousemove', function(e) {
-  if(!dragging) return;
+  if (!dragging) return;
   var dx = e.clientX - lastTX;
-  vel = dx;
-  bearing -= (dx / W) * FOV;
-  lastTX = e.clientX;
-  renderAR(); updateHUD();
+  vel = dx; bearing -= (dx / W) * FOV;
+  lastTX = e.clientX; renderAR(); updateHUD();
 });
 document.addEventListener('mouseup', function() { dragging = false; inertia(); });
 
 function inertia() {
   var v = vel;
   function step() {
-    if(Math.abs(v) < 0.3) return;
+    if (Math.abs(v) < 0.3) return;
     bearing -= (v / W) * FOV;
     v *= 0.90;
     renderAR(); updateHUD();
@@ -826,69 +641,108 @@ function inertia() {
   requestAnimationFrame(step);
 }
 
-// ── VIEW SWITCH ──
-document.querySelectorAll('.vb').forEach(function(btn) {
-  btn.addEventListener('touchend', function(e) {
-    e.preventDefault();
-    view = this.dataset.v;
-    document.querySelectorAll('.vb').forEach(function(b) {
-      b.classList.toggle('on', b.dataset.v === view);
-    });
-    document.getElementById('ar').style.display = view === 'ar' ? 'block' : 'none';
-    var mv = document.getElementById('mapview');
-    if(view === 'map') { mv.classList.add('show'); renderMap(); }
-    else mv.classList.remove('show');
-    document.getElementById('hint').style.display = view === 'ar' ? 'block' : 'none';
-  });
+// ==============================
+// GYRO
+// ==============================
+function startGyro() {
+  gyroActive = true;
+  window.addEventListener('deviceorientation', function(e) {
+    if (e.alpha !== null && !dragging) {
+      bearing = e.alpha;
+      if (view === 'ar') { renderAR(); updateHUD(); }
+    }
+  }, false);
+}
+
+var gyrobtn = document.getElementById('gyrobtn');
+function requestGyro() {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(function(state) {
+      if (state === 'granted') { startGyro(); gyrobtn.style.display = 'none'; }
+      else { gyrobtn.textContent = '許可が必要です'; }
+    }).catch(function() { startGyro(); gyrobtn.style.display = 'none'; });
+  } else {
+    startGyro(); gyrobtn.style.display = 'none';
+  }
+}
+gyrobtn.addEventListener('click', requestGyro);
+gyrobtn.addEventListener('touchend', function(e) { e.preventDefault(); requestGyro(); });
+
+// ==============================
+// VIEW SWITCH
+// ==============================
+var vbtns = document.querySelectorAll('.vb');
+for (var vi = 0; vi < vbtns.length; vi++) {
+  (function(btn) {
+    function switchView() {
+      view = btn.dataset.v;
+      for (var i = 0; i < vbtns.length; i++) {
+        vbtns[i].classList.toggle('on', vbtns[i].dataset.v === view);
+      }
+      arEl.style.display = view === 'ar' ? 'block' : 'none';
+      var mv = document.getElementById('mapview');
+      if (view === 'map') { mv.classList.add('show'); renderMap(); }
+      else { mv.classList.remove('show'); }
+      document.getElementById('gyrobtn').style.display = (view === 'ar' && !gyroActive) ? 'block' : 'none';
+    }
+    btn.addEventListener('click', switchView);
+    btn.addEventListener('touchend', function(e) { e.preventDefault(); switchView(); });
+  })(vbtns[vi]);
+}
+
+// ==============================
+// FILTERS
+// ==============================
+var fbtns = document.querySelectorAll('.fb');
+for (var fi = 0; fi < fbtns.length; fi++) {
+  (function(btn) {
+    function toggleFilter() {
+      var l = btn.dataset.l;
+      activeL[l] = !activeL[l];
+      btn.classList.toggle('on', activeL[l]);
+      if (view === 'ar') renderAR();
+      else renderMap();
+    }
+    btn.addEventListener('click', toggleFilter);
+    btn.addEventListener('touchend', function(e) { e.preventDefault(); toggleFilter(); });
+  })(fbtns[fi]);
+}
+
+// ==============================
+// LANGUAGE
+// ==============================
+var lbtns = document.querySelectorAll('.lb');
+for (var li = 0; li < lbtns.length; li++) {
+  (function(btn) {
+    function switchLang() {
+      lang = btn.dataset.l;
+      for (var i = 0; i < lbtns.length; i++) {
+        lbtns[i].classList.toggle('on', lbtns[i].dataset.l === lang);
+      }
+      if (view === 'ar') renderAR();
+      else renderMap();
+      updateHUD();
+    }
+    btn.addEventListener('click', switchLang);
+    btn.addEventListener('touchend', function(e) { e.preventDefault(); switchLang(); });
+  })(lbtns[li]);
+}
+
+// ==============================
+// RESIZE
+// ==============================
+window.addEventListener('resize', function() {
+  getWH();
+  if (view === 'ar') renderAR();
+  else { if (leafMap) leafMap.invalidateSize(); }
 });
 
-// ── FILTERS ──
-document.querySelectorAll('.fb').forEach(function(btn) {
-  btn.addEventListener('touchend', function(e) {
-    e.preventDefault();
-    var l = this.dataset.l;
-    activeL[l] = !activeL[l];
-    this.classList.toggle('on', activeL[l]);
-    renderAR();
-    if(view === 'map') renderMap();
-  });
-});
-
-// ── LANGUAGE ──
-document.querySelectorAll('.lb').forEach(function(btn) {
-  btn.addEventListener('touchend', function(e) {
-    e.preventDefault();
-    lang = this.dataset.l;
-    document.querySelectorAll('.lb').forEach(function(b) {
-      b.classList.toggle('on', b.dataset.l === lang);
-    });
-    renderAR();
-    if(view === 'map') renderMap();
-    updateHUD();
-  });
-});
-
-// ── GYRO ──
-
-// gyro buttons wired via onclick in HTML
-
-// Auto-pan removed - causes touch interference on iOS
-
-// ── INIT ──
-// Disable AR touch while gyro overlay is shown
-document.getElementById('ar').style.pointerEvents = 'none';
+// ==============================
+// INIT
+// ==============================
 renderAR();
 updateHUD();
-window.addEventListener('resize', function() {
-  getSize();
-  if(view === 'ar') renderAR();
-  else renderMap();
-});
 </script>
-<div id="gyro-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,10,30,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
-  <p style="color:rgba(255,255,255,.85);font-size:16px;line-height:1.8;text-align:center;margin-bottom:28px;">iPhoneを動かして<br>景色を探索するために<br>向きセンサーの使用を<br>許可してください</p>
-  <button onclick="handleGyroBtn()" style="padding:16px 40px;border-radius:32px;border:2px solid #5bc8ff;background:#001428;color:#5bc8ff;font-size:18px;font-weight:700;-webkit-appearance:none;display:block;margin-bottom:14px;">向き検知をONにする</button>
-  <button onclick="handleGyroSkip()" style="padding:10px 24px;border-radius:20px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.6);font-size:13px;-webkit-appearance:none;display:block;">スキップ（手動スワイプで操作）</button>
-</div>
 </body>
 </html>
