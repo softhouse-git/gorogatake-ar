@@ -211,15 +211,23 @@ html, body {
 
 /* ── ジャイロボタン ── */
 #gyro-overlay {
-  position:absolute;
-  inset:0;
-  z-index:999;
-  background:rgba(0,10,30,.88);
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  z-index:99999;
+  background:rgba(0,10,30,.92);
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
   padding:24px;
+  pointer-events:auto;
+  -webkit-overflow-scrolling:auto;
+}
+#gyro-overlay button {
+  pointer-events:auto;
+  cursor:pointer;
+  -webkit-user-select:none;
+  user-select:none;
 }
 #gyro-overlay p {
   color:rgba(255,255,255,.85);
@@ -350,12 +358,7 @@ html, body {
   <button class="vb" data-v="map" id="vbmap">地図ビュー</button>
 </div>
 
-<!-- ジャイロオーバーレイ -->
-<div id="gyro-overlay">
-  <p>iPhoneを動かして<br>景色を探索するために<br>向きセンサーの使用を<br>許可してください</p>
-  <button id="gyro-btn" onclick="handleGyroBtn()" ontouchstart="event.preventDefault();handleGyroBtn()">向き検知をONにする</button>
-  <button id="gyro-skip" onclick="handleGyroSkip()" ontouchstart="event.preventDefault();handleGyroSkip()">スキップ（手動スワイプで操作）</button>
-</div>
+
 
 <!-- 詳細パネル -->
 <div id="panel">
@@ -922,5 +925,11 @@ window.addEventListener('resize', function() {
   else renderMap();
 });
 </script>
+<!-- ジャイロオーバーレイ（最前面） -->
+<div id="gyro-overlay">
+  <p>iPhoneを動かして<br>景色を探索するために<br>向きセンサーの使用を<br>許可してください</p>
+  <button id="gyro-btn" onclick="handleGyroBtn()" style="pointer-events:auto;cursor:pointer;">向き検知をONにする</button>
+  <button id="gyro-skip" onclick="handleGyroSkip()" style="pointer-events:auto;cursor:pointer;">スキップ（手動スワイプで操作）</button>
+</div>
 </body>
 </html>
