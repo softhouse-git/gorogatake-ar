@@ -750,6 +750,7 @@ document.getElementById('pclose').addEventListener('touchend', function(e) {
 // ==============================
 var arEl = document.getElementById('ar');
 arEl.addEventListener('touchstart', function(e) {
+  if (document.getElementById('opening').style.display !== 'none') return;
   if (e.target.closest('#panel')) return;
   dragging = true;
   lastTX = e.touches[0].clientX;
@@ -904,7 +905,7 @@ window.addEventListener('resize', function() {
     op.appendChild(s);
   }
 
-  function closeOpening() {
+  window.closeOpening = function() {
     op.classList.add('fade-out');
     setTimeout(function() { op.style.display = 'none'; }, 600);
   }
@@ -944,7 +945,7 @@ updateHUD();
     <div class="op-title-ja">天空の<br>透明な図書館</div>
     <div class="op-title-sub">五老スカイタワー AR展望ガイド</div>
     <div class="op-tagline">絶景の「意味」を知り、<br>記憶に刻む。</div>
-    <button class="op-start" id="op-start-btn">
+    <button class="op-start" id="op-start-btn" onclick="closeOpening()">
       AR ガイドを始める
     </button>
     <div class="op-hint">タップして開始</div>
