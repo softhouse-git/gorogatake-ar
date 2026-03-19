@@ -360,6 +360,7 @@ html, body {
 <!-- 詳細パネル -->
 <div id="panel">
   <div class="ph"></div>
+  <div id="p-img-wrap"></div>
   <div class="ptop">
     <div class="pname" id="pname"></div>
     <button class="pclose" id="pclose">✕</button>
@@ -705,6 +706,40 @@ function renderMap() {
 }
 
 // ── PANEL ──
+// Wikipedia画像取得
+function fetchWikiImage(name, callback) {
+  // 検索キーワードを整理（括弧内を除去してシンプルに）
+  var query = name.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '').trim();
+  var url = 'https://ja.wikipedia.org/w/api.php?action=query&titles=' +
+    encodeURIComponent(query) +
+    '&prop=pageimages&pithumbsize=600&format=json&origin=*';
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var pages = data.query && data.query.pages;
+      if(!pages) { callback(null); return; }
+      var page = Object.values(pages)[0];
+      if(page && page.thumbnail) {
+        callback(page.thumbnail.source);
+      } else {
+        // 英語版も試す
+        var urlEn = 'https://en.wikipedia.org/w/api.php?action=query&titles=' +
+          encodeURIComponent(query) +
+          '&prop=pageimages&pithumbsize=600&format=json&origin=*';
+        fetch(urlEn)
+          .then(function(r2){ return r2.json(); })
+          .then(function(d2){
+            var p2 = d2.query && d2.query.pages;
+            var pg2 = p2 && Object.values(p2)[0];
+            callback(pg2 && pg2.thumbnail ? pg2.thumbnail.source : null);
+          })
+          .catch(function(){ callback(null); });
+      }
+    })
+    .catch(function(){ callback(null); });
+}
+
 function openPanel(s) {
   document.getElementById('pname').textContent = getName(s);
   document.getElementById('pdesc').textContent =
@@ -717,7 +752,6 @@ function openPanel(s) {
     (s.dist ? '<span class="tag">'+s.dist+'km</span>' : '');
 
   if(s.dist && s.b) {
-    var di = Math.round(s.b / 22.5) % 16;
     var dirLabel = getDirLabel(s.b);
     document.getElementById('pstats').innerHTML =
       '<div><div class="sv">'+s.dist+'km</div><div class="sl">距離</div></div>' +
@@ -727,7 +761,20 @@ function openPanel(s) {
     document.getElementById('pstats').innerHTML = '';
   }
 
+  // 画像エリアをローディング状態に
+  var imgWrap = document.getElementById('p-img-wrap');
+  imgWrap.innerHTML = '<div style="width:100%;height:160px;border-radius:12px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:13px;margin-bottom:14px;">画像を読み込み中...</div>';
+
   document.getElementById('panel').classList.add('open');
+
+  // Wikipediaから画像取得
+  fetchWikiImage(s.ja, function(imgUrl) {
+    if(imgUrl) {
+      imgWrap.innerHTML = '<img src="'+imgUrl+'" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:14px;display:block;" onerror="this.parentNode.innerHTML=''"/>';
+    } else {
+      imgWrap.innerHTML = '';
+    }
+  });
 }
 
 document.getElementById('pclose').addEventListener('touchend', function(e) {
