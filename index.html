@@ -475,7 +475,7 @@ function renderAR() {
     // Position: left = x - half of label width (approximate with margin-left)
     pin.style.left = Math.round(x) + 'px';
     pin.style.top = Math.round(y) + 'px';
-    pin.style.marginLeft = '0';
+    pin.style.transform = 'translateX(-50%)';
 
     var lbl = document.createElement('div');
     lbl.className = 'plabel';
@@ -505,15 +505,7 @@ function renderAR() {
     ar.appendChild(pin);
   }
 
-  // Center each pin's label after appending
-  var pins = ar.querySelectorAll('.pin');
-  for(var j = 0; j < pins.length; j++) {
-    var lbl2 = pins[j].querySelector('.plabel');
-    if(lbl2) {
-      var lw = lbl2.offsetWidth || 80;
-      pins[j].style.marginLeft = (-lw / 2) + 'px';
-    }
-  }
+  // Labels centered via CSS transform
 
   document.getElementById('ct').textContent = count + ' スポットを表示中';
 }
@@ -752,33 +744,33 @@ document.getElementById('gyro-btn').addEventListener('click', function() {
     DeviceOrientationEvent.requestPermission().then(function(state) {
       if(state === 'granted') {
         startGyro();
-        document.getElementById('gyro-overlay').style.display = 'none';
+        var ov = document.getElementById('gyro-overlay');
+        ov.style.display = 'none';
+        ov.style.pointerEvents = 'none';
       } else {
         document.getElementById('gyro-btn').textContent = '許可してください';
       }
     }).catch(function() {
       startGyro();
-      document.getElementById('gyro-overlay').style.display = 'none';
+      var ov = document.getElementById('gyro-overlay');
+      ov.style.display = 'none';
+      ov.style.pointerEvents = 'none';
     });
   } else {
     startGyro();
-    document.getElementById('gyro-overlay').style.display = 'none';
+    var ov2 = document.getElementById('gyro-overlay');
+    ov2.style.display = 'none';
+    ov2.style.pointerEvents = 'none';
   }
 });
 
 document.getElementById('gyro-skip').addEventListener('click', function() {
-  document.getElementById('gyro-overlay').style.display = 'none';
+  var ov = document.getElementById('gyro-overlay');
+  ov.style.display = 'none';
+  ov.style.pointerEvents = 'none';
 });
 
-// ── AUTO PAN (demo) ──
-var autoPan = true;
-setTimeout(function(){ autoPan = false; }, 12000);
-(function pan() {
-  if(!autoPan || dragging) return;
-  bearing += 0.03;
-  if(view === 'ar') { renderAR(); updateHUD(); }
-  requestAnimationFrame(pan);
-})();
+// Auto-pan removed - causes touch interference on iOS
 
 // ── INIT ──
 renderAR();
