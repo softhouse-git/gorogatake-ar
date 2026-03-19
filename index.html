@@ -163,6 +163,158 @@ body{
 .pstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);}
 .sv{font-size:20px;font-weight:700;color:#5bc8ff;text-align:center;line-height:1;margin-bottom:3px;}
 .sl{font-size:10px;color:rgba(255,255,255,.4);text-align:center;letter-spacing:.07em;}
+
+/* ── OPENING SCREEN ── */
+#opening {
+  position:fixed;inset:0;z-index:99999;
+  overflow:hidden;
+  background:linear-gradient(175deg,
+    #020810 0%, #051628 15%, #082540 30%,
+    #0e3d5c 45%, #1a5c78 55%, #1e6860 65%,
+    #164a38 78%, #0a2820 90%, #050f15 100%);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  cursor:pointer;
+}
+
+/* 空撮風の光の演出 */
+.op-light {
+  position:absolute;
+  border-radius:50%;
+  filter:blur(80px);
+  pointer-events:none;
+}
+.op-light1{width:600px;height:300px;top:10%;left:-10%;background:rgba(91,170,220,.12);animation:opL1 8s ease-in-out infinite alternate;}
+.op-light2{width:400px;height:200px;top:30%;right:-5%;background:rgba(61,180,160,.1);animation:opL2 10s ease-in-out infinite alternate;}
+.op-light3{width:500px;height:150px;bottom:20%;left:5%;background:rgba(30,100,140,.15);animation:opL1 12s ease-in-out infinite alternate-reverse;}
+@keyframes opL1{from{transform:translateX(0) scaleY(1)}to{transform:translateX(5%) scaleY(1.1)}}
+@keyframes opL2{from{transform:translateX(0) scaleY(1)}to{transform:translateX(-5%) scaleY(.9)}}
+
+/* 水平線 */
+.op-horizon{
+  position:absolute;bottom:35%;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(91,200,255,.4),rgba(61,220,200,.3),transparent);
+}
+/* 水面 */
+.op-sea{
+  position:absolute;bottom:0;left:0;right:0;height:35%;
+  background:linear-gradient(180deg,rgba(10,50,90,.7),rgba(5,20,45,.9));
+  overflow:hidden;
+}
+.op-sea::after{
+  content:'';position:absolute;top:0;left:-100%;width:300%;height:100%;
+  background:repeating-linear-gradient(90deg,transparent 0px,rgba(91,200,255,.025) 2px,transparent 4px);
+  animation:seaMove 12s linear infinite;
+}
+@keyframes seaMove{to{transform:translateX(33.3%)}}
+
+/* 島シルエット */
+.op-islands{
+  position:absolute;bottom:34%;left:0;right:0;height:80px;
+  background:
+    radial-gradient(ellipse 120px 40px at 15% 80%, rgba(15,40,25,.9) 0%, transparent 100%),
+    radial-gradient(ellipse 80px 30px at 28% 75%, rgba(12,35,20,.85) 0%, transparent 100%),
+    radial-gradient(ellipse 200px 50px at 50% 85%, rgba(18,45,30,.9) 0%, transparent 100%),
+    radial-gradient(ellipse 90px 35px at 68% 78%, rgba(14,38,22,.85) 0%, transparent 100%),
+    radial-gradient(ellipse 140px 45px at 82% 82%, rgba(16,42,28,.88) 0%, transparent 100%),
+    radial-gradient(ellipse 60px 25px at 92% 70%, rgba(12,32,18,.8) 0%, transparent 100%);
+  pointer-events:none;
+}
+
+/* メインパネル（グラスモーフィズム） */
+.op-panel{
+  position:relative;z-index:10;
+  background:rgba(255,255,255,.07);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:24px;
+  padding:36px 40px 32px;
+  text-align:center;
+  max-width:320px;width:88%;
+  box-shadow:0 8px 48px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.15);
+  animation:opPanelIn .8s cubic-bezier(.16,1,.3,1) .3s both;
+}
+@keyframes opPanelIn{
+  from{opacity:0;transform:translateY(20px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* レインボー光沢 */
+.op-panel::before{
+  content:'';position:absolute;inset:-1px;border-radius:25px;
+  background:linear-gradient(135deg,
+    rgba(91,200,255,.3) 0%,rgba(61,232,200,.2) 25%,
+    rgba(167,139,250,.15) 50%,rgba(244,114,182,.1) 75%,
+    rgba(91,200,255,.2) 100%);
+  mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite:xor;-webkit-mask-composite:destination-out;
+  padding:1px;pointer-events:none;
+}
+
+.op-badge{
+  display:inline-block;
+  font-size:10px;letter-spacing:.15em;color:rgba(91,200,255,.8);
+  border:1px solid rgba(91,200,255,.3);
+  border-radius:20px;padding:4px 14px;margin-bottom:20px;
+  text-transform:uppercase;
+  background:rgba(91,200,255,.08);
+}
+
+.op-title-ja{
+  font-size:26px;font-weight:700;
+  color:#fff;line-height:1.4;
+  margin-bottom:8px;
+  letter-spacing:.04em;
+  text-shadow:0 0 40px rgba(91,200,255,.4);
+}
+
+.op-title-sub{
+  font-size:11px;letter-spacing:.12em;
+  color:rgba(255,255,255,.5);
+  margin-bottom:6px;text-transform:uppercase;
+}
+
+.op-tagline{
+  font-size:13px;color:rgba(255,255,255,.6);
+  line-height:1.7;margin-bottom:28px;
+  letter-spacing:.04em;
+}
+
+.op-start{
+  display:inline-block;
+  padding:13px 36px;border-radius:28px;
+  border:none;
+  background:linear-gradient(135deg, rgba(91,200,255,.25), rgba(61,232,200,.2));
+  border:1px solid rgba(91,200,255,.5);
+  color:#fff;font-size:15px;font-weight:700;
+  cursor:pointer;-webkit-appearance:none;
+  letter-spacing:.06em;
+  box-shadow:0 0 24px rgba(91,200,255,.2);
+  transition:all .2s;
+  width:100%;
+}
+.op-start:active{transform:scale(.97);}
+
+.op-hint{
+  margin-top:14px;font-size:11px;
+  color:rgba(255,255,255,.3);letter-spacing:.06em;
+}
+
+/* 星 */
+.op-star{
+  position:absolute;border-radius:50%;background:#fff;
+  animation:opTwinkle var(--d,3s) ease-in-out infinite var(--dl,0s);
+}
+@keyframes opTwinkle{0%,100%{opacity:var(--op,.2)}50%{opacity:.05}}
+
+/* フェードアウト */
+#opening.fade-out{
+  animation:opFade .6s ease-in-out forwards;
+}
+@keyframes opFade{to{opacity:0;pointer-events:none;}}
 </style>
 </head>
 <body>
@@ -739,10 +891,63 @@ window.addEventListener('resize', function() {
 });
 
 // ==============================
+// OPENING
+// ==============================
+(function() {
+  // Add stars
+  var op = document.getElementById('opening');
+  for (var i = 0; i < 50; i++) {
+    var s = document.createElement('div');
+    s.className = 'op-star';
+    var sz = Math.random() * 2 + .5;
+    s.style.cssText = 'width:'+sz+'px;height:'+sz+'px;top:'+(Math.random()*65)+'%;left:'+(Math.random()*100)+'%;--d:'+(2+Math.random()*4)+'s;--dl:-'+(Math.random()*5)+'s;--op:'+(0.1+Math.random()*.5)+';';
+    op.appendChild(s);
+  }
+
+  function closeOpening() {
+    op.classList.add('fade-out');
+    setTimeout(function() { op.style.display = 'none'; }, 600);
+  }
+
+  document.getElementById('op-start-btn').addEventListener('click', closeOpening);
+  document.getElementById('op-start-btn').addEventListener('touchend', function(e) {
+    e.preventDefault(); closeOpening();
+  });
+  // Also close on tap anywhere on opening
+  op.addEventListener('click', function(e) {
+    if (e.target === op) closeOpening();
+  });
+})();
+
+// ==============================
 // INIT
 // ==============================
 renderAR();
 updateHUD();
 </script>
+
+<!-- OPENING SCREEN -->
+<div id="opening">
+  <!-- 光 -->
+  <div class="op-light op-light1"></div>
+  <div class="op-light op-light2"></div>
+  <div class="op-light op-light3"></div>
+  <!-- 水平線・海・島 -->
+  <div class="op-horizon"></div>
+  <div class="op-islands"></div>
+  <div class="op-sea"></div>
+  <!-- メインパネル -->
+  <div class="op-panel">
+    <div class="op-badge">Gorogatake Sky Tower</div>
+    <div class="op-title-ja">天空の<br>透明な図書館</div>
+    <div class="op-title-sub">五老スカイタワー AR展望ガイド</div>
+    <div class="op-tagline">絶景の「意味」を知り、<br>記憶に刻む。</div>
+    <button class="op-start" id="op-start-btn">
+      AR ガイドを始める
+    </button>
+    <div class="op-hint">タップして開始</div>
+  </div>
+</div>
+
 </body>
 </html>
