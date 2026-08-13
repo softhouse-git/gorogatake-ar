@@ -321,13 +321,18 @@ body{
 <button id="gyrobtn">📡 向き検知をONにする</button>
 <div id="calib">
   <div id="dbg">-</div>
-  <div id="calib-label">📐 方位補正</div>
+  <div id="calib-label">方位補正（左右のズレ）</div>
   <div id="calib-row">
     <button class="calib-btn" id="calib-minus">－</button>
     <div id="calib-val">+0°</div>
     <button class="calib-btn" id="calib-plus">＋</button>
   </div>
-  <button id="flipbtn">↔ 反転 OFF</button>
+  <div id="calib-label" style="margin-top:12px;">視野角（ピンの移動量）</div>
+  <div id="calib-row">
+    <button class="calib-btn" id="fov-minus">－</button>
+    <div id="fov-val">63°</div>
+    <button class="calib-btn" id="fov-plus">＋</button>
+  </div>
 </div>
 
 <div id="vsw">
@@ -459,7 +464,7 @@ var lang = 'ja';
 var bearing = 30;
 var view = 'ar';
 var activeL = {近景:true,中景:true,遠景:true,超遠景:true};
-var FOV = 110;
+var FOV = 63;   // iPhone背面カメラ(縦持ち)の実測水平視野
 var W = window.innerWidth;
 var H = window.innerHeight;
 var dragging = false;
@@ -817,16 +822,15 @@ function updateDbg() {
     Math.round(bearing) + '°' + (headingFlip ? ' / 反転ON' : '');
 }
 
-function toggleFlip() {
-  headingFlip = !headingFlip;
-  var b = document.getElementById('flipbtn');
-  b.textContent = headingFlip ? '↔ 反転 ON' : '↔ 反転 OFF';
-  b.style.borderColor = headingFlip ? '#f472b6' : 'rgba(91,200,255,.5)';
-  b.style.color = headingFlip ? '#f472b6' : '#5bc8ff';
-  updateDbg();
-}
+
 
 var gyrobtn = document.getElementById('gyrobtn');
+
+function adjFov(delta) {
+  FOV = Math.max(30, Math.min(120, FOV + delta));
+  document.getElementById('fov-val').textContent = FOV + '°';
+  if (view === 'ar') renderAR();
+}
 
 function adjOffset(delta) {
   bearingOffset = (bearingOffset + delta + 360) % 360;
@@ -845,9 +849,14 @@ function showCalib() {
   }
   mk('calib-minus', -5);
   mk('calib-plus', +5);
-  var fb = document.getElementById('flipbtn');
-  fb.addEventListener('touchstart', function(e){ e.preventDefault(); toggleFlip(); }, {passive:false});
-  fb.addEventListener('click', function(){ toggleFlip(); });
+  function mkf(id, d) {
+    var b = document.getElementById(id);
+    b.addEventListener('touchstart', function(e){ e.preventDefault(); adjFov(d); }, {passive:false});
+    b.addEventListener('click', function(){ adjFov(d); });
+  }
+  mkf('fov-minus', -3);
+  mkf('fov-plus', +3);
+  document.getElementById('fov-val').textContent = FOV + '°';
   updateDbg();
 }
 
