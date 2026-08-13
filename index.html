@@ -324,13 +324,13 @@ body{
   <div id="calib-label">方位補正（左右のズレ）</div>
   <div id="calib-row">
     <button class="calib-btn" id="calib-minus">－</button>
-    <div id="calib-val">+0°</div>
+    <div id="calib-val">-25°</div>
     <button class="calib-btn" id="calib-plus">＋</button>
   </div>
   <div id="calib-label" style="margin-top:12px;">視野角（ピンの移動量）</div>
   <div id="calib-row">
     <button class="calib-btn" id="fov-minus">－</button>
-    <div id="fov-val">63°</div>
+    <div id="fov-val">30°</div>
     <button class="calib-btn" id="fov-plus">＋</button>
   </div>
 </div>
@@ -464,7 +464,7 @@ var lang = 'ja';
 var bearing = 30;
 var view = 'ar';
 var activeL = {近景:true,中景:true,遠景:true,超遠景:true};
-var FOV = 63;   // iPhone背面カメラ(縦持ち)の実測水平視野
+var FOV = 30;   // 現地実測値(縦持ち・cover表示での実効水平視野)
 var W = window.innerWidth;
 var H = window.innerHeight;
 var dragging = false;
@@ -786,7 +786,7 @@ function inertia() {
 // ==============================
 // GYRO
 // ==============================
-var bearingOffset = 0;
+var bearingOffset = -25;   // 現地実測の方位補正
 
 var headingFlip = false;   // 反転トグル
 var headingSrc = '-';      // 診断用: 値の取得元
