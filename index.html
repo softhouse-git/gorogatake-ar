@@ -41,10 +41,25 @@ body{
   position:fixed;top:0;left:0;
 }
 
-/* 背景 */
-#bg{
+/* カメラ背景 */
+#camera-bg{
+  position:absolute;inset:0;
+  background:#000;
+  overflow:hidden;
+}
+#camera-video{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  min-width:100%;min-height:100%;
+  width:auto;height:auto;
+  object-fit:cover;
+}
+/* カメラ未許可時のフォールバック背景 */
+#camera-fallback{
   position:absolute;inset:0;
   background:linear-gradient(175deg,#060d1a 0%,#0a1e38 20%,#123358 40%,#1b567a 55%,#2a7a6a 68%,#1e5440 80%,#0f2e20 100%);
+  display:block;
 }
 #sea{position:absolute;bottom:0;left:0;right:0;height:36%;background:linear-gradient(180deg,rgba(20,60,110,.7),rgba(8,25,55,.95));}
 .hline{position:absolute;bottom:36%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(91,200,255,.3),transparent);}
@@ -53,10 +68,11 @@ body{
 #hud{
   position:absolute;top:0;left:0;right:0;
   padding:14px 16px 10px;
-  background:linear-gradient(180deg,rgba(0,0,0,.6),transparent);
+  background:linear-gradient(180deg,rgba(0,0,0,.3),transparent);
   display:flex;justify-content:space-between;align-items:flex-start;
   z-index:30;pointer-events:none;
 }
+.ht,.hs,.hd,.hdir{text-shadow:0 1px 4px rgba(0,0,0,.85);}
 .ht{font-size:13px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.8);}
 .hs{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px;}
 .hd{font-size:28px;font-weight:300;text-align:right;line-height:1;}
@@ -96,10 +112,11 @@ body{
 /* ピン */
 .pin{position:absolute;cursor:pointer;}
 .plabel{
-  padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;
-  white-space:nowrap;background:rgba(0,0,0,.78);
-  border:1px solid rgba(255,255,255,.2);letter-spacing:.02em;
+  padding:5px 12px;border-radius:18px;font-size:12px;font-weight:700;
+  white-space:nowrap;background:rgba(0,0,0,.82);
+  border:1px solid rgba(255,255,255,.3);letter-spacing:.02em;
   position:absolute;transform:translateX(-50%);
+  box-shadow:0 2px 12px rgba(0,0,0,.5);
 }
 .pdot{width:8px;height:8px;border-radius:50%;position:absolute;}
 .pstem{width:1px;position:absolute;opacity:.5;}
@@ -144,6 +161,24 @@ body{
   font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.06em;
   z-index:20;pointer-events:none;white-space:nowrap;
 }
+
+/* 方位補正UI */
+#calib{
+  position:absolute;bottom:76px;left:50%;transform:translateX(-50%);
+  z-index:40;display:none;
+  background:rgba(0,10,30,.88);border:1px solid rgba(91,200,255,.3);
+  border-radius:16px;padding:10px 16px;text-align:center;white-space:nowrap;
+}
+#calib-label{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.05em;margin-bottom:8px;}
+#calib-row{display:flex;align-items:center;gap:12px;justify-content:center;}
+.calib-btn{
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid rgba(91,200,255,.5);background:rgba(91,200,255,.12);
+  color:#5bc8ff;font-size:20px;font-weight:700;
+  cursor:pointer;-webkit-appearance:none;
+  display:flex;align-items:center;justify-content:center;line-height:1;
+}
+#calib-val{font-size:17px;font-weight:700;color:#5bc8ff;width:64px;text-align:center;}
 
 /* ジャイロボタン（画面下部に固定） */
 #gyrobtn{
@@ -245,7 +280,11 @@ body{
     <div class="op-note">秒後に自動で開始</div>
   </div>
 </div>
-<div id="bg"><div class="hline"></div><div id="sea"></div></div>
+<div id="camera-bg">
+  <video id="camera-video" autoplay playsinline muted></video>
+  <div id="camera-fallback"></div>
+</div>
+<div id="bg" style="position:absolute;inset:0;pointer-events:none;background:transparent;"></div>
 
 <div id="hud">
   <div><div class="ht">五老スカイタワー</div><div class="hs">AR LANDSCAPE GUIDE</div></div>
@@ -270,6 +309,14 @@ body{
 
 <div id="ct"></div>
 <button id="gyrobtn">📡 向き検知をONにする</button>
+<div id="calib">
+  <div id="calib-label">📐 方位補正（ピンがずれる場合に調整）</div>
+  <div id="calib-row">
+    <button class="calib-btn" id="calib-minus">－</button>
+    <div id="calib-val">+0°</div>
+    <button class="calib-btn" id="calib-plus">＋</button>
+  </div>
+</div>
 
 <div id="vsw">
   <button class="vb on" data-v="ar">ARビュー</button>
@@ -722,26 +769,54 @@ function inertia() {
 // ==============================
 // GYRO
 // ==============================
+var bearingOffset = 0;
+
 function startGyro() {
   gyroActive = true;
   window.addEventListener('deviceorientation', function(e) {
     if (e.alpha !== null && !dragging) {
-      bearing = e.alpha;
+      var raw;
+      if (typeof e.webkitCompassHeading !== 'undefined' && e.webkitCompassHeading !== null) {
+        raw = e.webkitCompassHeading; // iOS: 真北基準コンパス値
+      } else {
+        raw = (360 - e.alpha) % 360; // Android: 反転
+      }
+      bearing = (raw + bearingOffset + 360) % 360;
       if (view === 'ar') { renderAR(); updateHUD(); }
     }
   }, false);
 }
 
 var gyrobtn = document.getElementById('gyrobtn');
+
+function adjOffset(delta) {
+  bearingOffset = (bearingOffset + delta + 360) % 360;
+  if (bearingOffset > 180) bearingOffset -= 360;
+  document.getElementById('calib-val').textContent = (bearingOffset >= 0 ? '+' : '') + bearingOffset + '°';
+}
+
+function showCalib() {
+  gyrobtn.style.display = 'none';
+  var cal = document.getElementById('calib');
+  cal.style.display = 'block';
+  function mk(id, delta) {
+    var b = document.getElementById(id);
+    b.addEventListener('touchstart', function(e) { e.preventDefault(); adjOffset(delta); }, {passive:false});
+    b.addEventListener('click', function() { adjOffset(delta); });
+  }
+  mk('calib-minus', -5);
+  mk('calib-plus', +5);
+}
+
 function requestGyro() {
   if (typeof DeviceOrientationEvent !== 'undefined' &&
       typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().then(function(state) {
-      if (state === 'granted') { startGyro(); gyrobtn.style.display = 'none'; }
+      if (state === 'granted') { startGyro(); showCalib(); }
       else { gyrobtn.textContent = '許可が必要です'; }
-    }).catch(function() { startGyro(); gyrobtn.style.display = 'none'; });
+    }).catch(function() { startGyro(); showCalib(); });
   } else {
-    startGyro(); gyrobtn.style.display = 'none';
+    startGyro(); showCalib();
   }
 }
 gyrobtn.addEventListener('click', requestGyro);
@@ -821,6 +896,41 @@ window.addEventListener('resize', function() {
 // ==============================
 renderAR();
 updateHUD();
+
+// ==============================
+// CAMERA AR
+// ==============================
+(function() {
+  var video = document.getElementById('camera-video');
+  var fallback = document.getElementById('camera-fallback');
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    console.log('Camera not supported');
+    return;
+  }
+
+  var constraints = {
+    video: {
+      facingMode: {ideal: 'environment'}, // 背面カメラ
+      width: {ideal: 1920},
+      height: {ideal: 1080}
+    },
+    audio: false
+  };
+
+  navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      video.srcObject = stream;
+      video.play();
+      // カメラON → フォールバック背景と海を非表示
+      fallback.style.display = 'none';
+      console.log('Camera started');
+    })
+    .catch(function(err) {
+      console.log('Camera error:', err.name);
+      // エラー時はフォールバック背景をそのまま表示
+    });
+})();
 
 // OPENING COUNTDOWN
 window.addEventListener('load', function() {
