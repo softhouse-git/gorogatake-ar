@@ -118,16 +118,27 @@ body{
   position:absolute;transform:translateX(-50%);
   box-shadow:0 2px 12px rgba(0,0,0,.5);
 }
-.pdot{width:8px;height:8px;border-radius:50%;position:absolute;}
+.pdot{
+  width:64px;height:64px;border-radius:50%;position:absolute;
+  filter:blur(10px);opacity:.8;
+}
+.pdot-core{
+  width:14px;height:14px;border-radius:50%;position:absolute;
+  filter:blur(4px);opacity:.95;
+}
 .pstem{width:1px;position:absolute;opacity:.5;}
 .pin[data-l="近景"] .plabel{color:#5bc8ff;border-color:rgba(91,200,255,.4);}
 .pin[data-l="中景"] .plabel{color:#3de8c8;border-color:rgba(61,232,200,.4);}
 .pin[data-l="遠景"] .plabel{color:#a78bfa;border-color:rgba(167,139,250,.4);}
 .pin[data-l="超遠景"] .plabel{color:#f472b6;border-color:rgba(244,114,182,.4);}
-.pin[data-l="近景"] .pdot{background:#5bc8ff;box-shadow:0 0 8px #5bc8ff;}
-.pin[data-l="中景"] .pdot{background:#3de8c8;box-shadow:0 0 8px #3de8c8;}
-.pin[data-l="遠景"] .pdot{background:#a78bfa;box-shadow:0 0 8px #a78bfa;}
-.pin[data-l="超遠景"] .pdot{background:#f472b6;box-shadow:0 0 8px #f472b6;}
+.pin[data-l="近景"] .pdot{background:radial-gradient(circle,#5bc8ff 0%,#5bc8ffdd 28%,#5bc8ff77 52%,#5bc8ff22 70%,transparent 82%);}
+.pin[data-l="近景"] .pdot-core{background:#5bc8ff;}
+.pin[data-l="中景"] .pdot{background:radial-gradient(circle,#3de8c8 0%,#3de8c8dd 28%,#3de8c877 52%,#3de8c822 70%,transparent 82%);}
+.pin[data-l="中景"] .pdot-core{background:#3de8c8;}
+.pin[data-l="遠景"] .pdot{background:radial-gradient(circle,#a78bfa 0%,#a78bfadd 28%,#a78bfa77 52%,#a78bfa22 70%,transparent 82%);}
+.pin[data-l="遠景"] .pdot-core{background:#a78bfa;}
+.pin[data-l="超遠景"] .pdot{background:radial-gradient(circle,#f472b6 0%,#f472b6dd 28%,#f472b677 52%,#f472b622 70%,transparent 82%);}
+.pin[data-l="超遠景"] .pdot-core{background:#f472b6;}
 .pin[data-l="近景"] .pstem{background:linear-gradient(180deg,#5bc8ff,transparent);}
 .pin[data-l="中景"] .pstem{background:linear-gradient(180deg,#3de8c8,transparent);}
 .pin[data-l="遠景"] .pstem{background:linear-gradient(180deg,#a78bfa,transparent);}
@@ -144,7 +155,7 @@ body{
 
 /* ビュー切替 */
 #vsw{
-  position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:56px;left:50%;transform:translateX(-50%);
   display:flex;background:rgba(0,0,0,.55);
   border:1px solid rgba(255,255,255,.18);border-radius:24px;overflow:hidden;z-index:30;
 }
@@ -157,14 +168,14 @@ body{
 
 /* スポット数 */
 #ct{
-  position:absolute;bottom:68px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:100px;left:50%;transform:translateX(-50%);
   font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.06em;
   z-index:20;pointer-events:none;white-space:nowrap;
 }
 
 /* 方位補正UI */
 #calib{
-  position:absolute;bottom:76px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:108px;left:50%;transform:translateX(-50%);
   z-index:40;display:none;
   background:rgba(0,10,30,.88);border:1px solid rgba(91,200,255,.3);
   border-radius:16px;padding:10px 16px;text-align:center;white-space:nowrap;
@@ -192,7 +203,7 @@ body{
 
 /* ジャイロボタン（画面下部に固定） */
 #gyrobtn{
-  position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:112px;left:50%;transform:translateX(-50%);
   padding:12px 28px;border-radius:28px;
   border:2px solid #5bc8ff;background:rgba(0,20,50,.9);
   color:#5bc8ff;font-size:15px;font-weight:700;
@@ -212,6 +223,8 @@ body{
   -webkit-overflow-scrolling:touch;
 }
 #panel.open{transform:translateY(0);}
+#panel.open ~ #credit, body.panel-open #credit{
+  transition:opacity .3s ease;opacity:0;}
 .ph{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:14px auto 16px;}
 .ptop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
 .pname{font-size:20px;font-weight:700;line-height:1.3;flex:1;}
@@ -226,7 +239,8 @@ body{
 .tagh{background:rgba(91,200,255,.14);color:#5bc8ff;border:1px solid rgba(91,200,255,.3);}
 .pdesc{font-size:13px;line-height:1.8;color:rgba(255,255,255,.75);margin-bottom:16px;}
 #pimg{width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:14px;display:none;}
-#pimgload{width:100%;height:60px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:12px;margin-bottom:14px;}
+#pimgload{width:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:12px;}
+#pimgload:not(:empty){height:56px;margin-bottom:12px;}
 .pstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);}
 .sv{font-size:20px;font-weight:700;color:#5bc8ff;text-align:center;line-height:1;margin-bottom:3px;}
 .sl{font-size:10px;color:rgba(255,255,255,.4);text-align:center;letter-spacing:.07em;}
@@ -264,6 +278,106 @@ body{
 .op-ring svg{width:60px;height:60px;transform:rotate(-90deg);}
 .op-ring-n{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:22px;font-weight:700;color:#5bc8ff;}
 .op-note{font-size:11px;color:rgba(255,255,255,.3);letter-spacing:.06em;}
+
+/* ── 位置合わせモード ── */
+#aim{
+  position:absolute;inset:0;z-index:60;display:none;
+}
+#aim.show{display:block;}
+#aim-cross{
+  position:absolute;top:0;bottom:0;left:50%;width:1px;
+  background:linear-gradient(180deg,transparent,rgba(255,220,80,.9) 20%,rgba(255,220,80,.9) 80%,transparent);
+  pointer-events:none;
+}
+#aim-cross::before{
+  content:'';position:absolute;top:50%;left:-14px;
+  width:28px;height:1px;background:rgba(255,220,80,.9);
+}
+#aim-top{
+  position:absolute;top:0;left:0;right:0;
+  padding:70px 20px 16px;text-align:center;
+  background:linear-gradient(180deg,rgba(0,10,30,.92),rgba(0,10,30,.75) 70%,transparent);
+  pointer-events:none;
+}
+#aim-title{font-size:15px;font-weight:700;color:#ffdc50;margin-bottom:6px;letter-spacing:.04em;}
+#aim-desc{font-size:12px;color:rgba(255,255,255,.65);line-height:1.6;}
+#aim-bottom{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:14px 12px 26px;
+  background:linear-gradient(0deg,rgba(0,10,30,.95),rgba(0,10,30,.8) 60%,transparent);
+}
+#aim-list{
+  display:flex;gap:8px;overflow-x:auto;padding:2px 4px 12px;
+  -webkit-overflow-scrolling:touch;
+}
+.aim-chip{
+  flex:0 0 auto;padding:9px 15px;border-radius:20px;
+  border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.07);
+  color:rgba(255,255,255,.8);font-size:13px;font-weight:600;
+  white-space:nowrap;-webkit-appearance:none;
+}
+.aim-chip.sel{border-color:#ffdc50;background:rgba(255,220,80,.18);color:#ffdc50;}
+#aim-actions{display:flex;gap:10px;padding:0 4px;}
+#aim-ok,#aim-cancel{
+  flex:1;padding:13px 0;border-radius:24px;font-size:14px;font-weight:700;
+  -webkit-appearance:none;border:1px solid;
+}
+#aim-ok{border-color:#ffdc50;background:rgba(255,220,80,.2);color:#ffdc50;}
+#aim-ok.off{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.3);}
+#aim-cancel{border-color:rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);}
+#aimbtn{
+  margin-top:12px;padding:10px 0;border-radius:20px;width:100%;
+  border:1px solid rgba(255,220,80,.5);background:rgba(255,220,80,.12);
+  color:#ffdc50;font-size:13px;font-weight:700;-webkit-appearance:none;
+}
+
+#aim-sign{
+  width:100%;padding:14px 0;border-radius:24px;margin-bottom:12px;
+  border:2px solid #ffdc50;background:rgba(255,220,80,.18);
+  color:#ffdc50;font-size:15px;font-weight:700;-webkit-appearance:none;
+}
+#aim-or{
+  font-size:11px;color:rgba(255,255,255,.4);text-align:center;
+  margin-bottom:8px;letter-spacing:.05em;
+}
+
+
+/* ── 音声ガイド（スポットと無関係・常時表示） ── */
+#gaudio{
+  position:absolute;top:60px;left:12px;z-index:30;
+  padding:7px 14px;border-radius:20px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(0,0,0,.45);
+  color:rgba(255,255,255,.75);
+  font-size:11.5px;font-weight:600;letter-spacing:.02em;
+  -webkit-appearance:none;display:flex;align-items:center;gap:5px;
+  white-space:nowrap;
+}
+#gaudio.playing{
+  border-color:#3de8c8;color:#3de8c8;background:rgba(61,232,200,.14);
+}
+#gaudio.off{
+  border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.3);
+}
+#gaudio-icon{font-size:13px;line-height:1;}
+
+/* ── クレジット表記（右下に常時表示） ── */
+#credit{
+  transition:opacity .3s ease;
+  position:absolute;
+  right:10px;
+  bottom:8px;
+  z-index:35;
+  text-align:right;
+  font-size:8px;
+  line-height:1.55;
+  color:rgba(255,255,255,.38);
+  letter-spacing:.02em;
+  text-shadow:0 1px 3px rgba(0,0,0,.85);
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
 </style>
 </head>
 <body>
@@ -307,6 +421,8 @@ body{
   <button class="lb" data-l="zh">中文</button>
 </div>
 
+<button id="gaudio"><span id="gaudio-icon">🔊</span><span id="gaudio-label">音声ガイド</span></button>
+
 <div id="filters">
   <button class="fb on" data-l="近景">近景 ～5km</button>
   <button class="fb on" data-l="中景">中景 ～15km</button>
@@ -319,6 +435,22 @@ body{
 
 <div id="ct"></div>
 <button id="gyrobtn">📡 向き検知をONにする</button>
+<div id="aim">
+  <div id="aim-cross"></div>
+  <div id="aim-top">
+    <div id="aim-title">目標に合わせて0度を設定</div>
+    <div id="aim-desc">案内板の照準をのぞき、<br>黄色い線を重ねてボタンを押してください</div>
+  </div>
+  <div id="aim-bottom">
+    <button id="aim-sign">📋 案内板の照準に合わせる（推奨）</button>
+    <div id="aim-or">または、見えている目標を選ぶ</div>
+    <div id="aim-list"></div>
+    <div id="aim-actions">
+      <button id="aim-cancel">キャンセル</button>
+      <button id="aim-ok" class="off">決定</button>
+    </div>
+  </div>
+</div>
 <div id="calib">
   <div id="dbg">-</div>
   <div id="calib-label">方位補正（左右のズレ）</div>
@@ -333,11 +465,18 @@ body{
     <div id="fov-val">30°</div>
     <button class="calib-btn" id="fov-plus">＋</button>
   </div>
+  <button id="aimbtn">🎯 目標に合わせて0度を設定</button>
 </div>
 
 <div id="vsw">
   <button class="vb on" data-v="ar">ARビュー</button>
   <button class="vb" data-v="map">地図ビュー</button>
+</div>
+
+<div id="credit">
+  中小企業等事業再構築促進補助金（令和8年事業）<br>
+  事業者名：株式会社パブリックメディア京都<br>
+  交付番号：R226DN00010000
 </div>
 
 <div id="panel">
@@ -359,99 +498,106 @@ body{
 // ==============================
 var BASE_LAT = 35.464806, BASE_LON = 135.343583;
 
-var SPOTS = [
-  {layer:'近景',cat:'旧軍港',dist:3.35,b:57.5, ja:'海上自衛隊北吸桟橋',     en:'JMSDF Kitasui Pier',        zh:'海上自卫队北吸泊岸',
+var SPOTS = [{id:'p01', layer:'近景',cat:'旧軍港',dist:3.35,b:57.5, ja:'海上自衛隊北吸桟橋',     en:'JMSDF Kitasui Pier',        zh:'海上自卫队北吸泊岸',
    desc_ja:'イージス艦などの護衛艦が停泊する海上自衛隊の桟橋。舞鶴の海軍都市としての歴史を今に伝える現役の軍港施設。',
    desc_en:'A pier where Aegis destroyers berth, embodying Maizuru\'s centuries-old naval heritage.',
    desc_zh:'停靠神盾舰等护卫舰的海上自卫队栈桥。'},
-  {layer:'近景',cat:'旧軍港',dist:2.75,b:66.3, ja:'舞鶴地方総監部/海軍記念館', en:'Maizuru Naval Museum',       zh:'舞鹤地方总监部/海军纪念馆',
+  {id:'p02', layer:'近景',cat:'旧軍港',dist:2.75,b:66.3, ja:'舞鶴地方総監部/海軍記念館', en:'Maizuru Naval Museum',       zh:'舞鹤地方总监部/海军纪念馆',
    desc_ja:'旧海軍の赤れんが建築が残る施設。明治期の海軍史を物語る貴重な遺構。',
    desc_en:'Red-brick naval buildings from the Meiji era housing this history museum.',
    desc_zh:'保留有旧海军红砖建筑的设施。明治时期建造的珍贵遗迹。'},
-  {layer:'近景',cat:'旧軍港',dist:3.95,b:73.7, ja:'舞鶴赤れんがパーク',       en:'Red Brick Park',            zh:'舞鹤红砖公园',
+  {id:'p03', layer:'近景',cat:'旧軍港',dist:3.95,b:73.7, ja:'舞鶴赤れんがパーク',       en:'Red Brick Park',            zh:'舞鹤红砖公园',
    desc_ja:'明治35年築の旧海軍倉庫群。国の重要文化財に指定された12棟が立ち並ぶ舞鶴の象徴的景観。',
    desc_en:'12 Meiji-era naval warehouses designated as Important Cultural Properties.',
    desc_zh:'建于明治35年的旧海军仓库群，12栋红砖仓库并排而立。'},
-  {layer:'近景',cat:'産業',  dist:3.39,b:55.2, ja:'ジャパンマリンユナイテッド',en:'Japan Marine United',        zh:'日本海洋联合造船厂',
+  {id:'p04', layer:'近景',cat:'産業',  dist:3.39,b:55.2, ja:'ジャパンマリンユナイテッド',en:'Japan Marine United',        zh:'日本海洋联合造船厂',
    desc_ja:'造船の街・舞鶴を代表する大型造船所。巨大クレーンが港の景観を特徴づける。',
    desc_en:'A major shipyard defining Maizuru\'s industrial skyline with towering cranes.',
    desc_zh:'代表造船城市舞鹤的大型造船厂。巨型起重机构成港口特色景观。'},
-  {layer:'近景',cat:'歴史',  dist:1.63,b:240,  ja:'吉原入江（日本のベニス）',  en:'Yoshiwara Inlet',           zh:'吉原入江（日本威尼斯）',
+  {id:'p05', layer:'近景',cat:'歴史',  dist:1.63,b:240,  ja:'吉原入江（日本のベニス）',  en:'Yoshiwara Inlet',           zh:'吉原入江（日本威尼斯）',
    desc_ja:'入江に舟屋が並ぶ独特の景観が、ヴェネツィアを想起させる地区。京都府の景観資産。',
    desc_en:'Boathouses lining this inlet evoke the canals of Venice, Italy.',
    desc_zh:'沿入江排列的船屋景观令人联想到威尼斯，京都府景观资产。'},
-  {layer:'近景',cat:'インフラ',dist:6.35,b:35.7,ja:'舞鶴クレインブリッジ',     en:'Maizuru Crane Bridge',      zh:'舞鹤起重桥',
+  {id:'p06', layer:'近景',cat:'インフラ',dist:6.35,b:35.7,ja:'舞鶴クレインブリッジ',     en:'Maizuru Crane Bridge',      zh:'舞鹤起重桥',
    desc_ja:'全長735mの斜張橋。鶴が羽を広げた優美なフォルムが特徴で、引揚の歴史を象徴する橋。',
    desc_en:'A 735m cable-stayed bridge whose silhouette echoes a crane spreading its wings.',
    desc_zh:'全长735米的斜拉桥，鹤展翅的优美造型象征引扬港舞鹤的历史。'},
-  {layer:'近景',cat:'観光',  dist:3.09,b:238.6,ja:'舞鶴港とれとれセンター',   en:'Toretore Fish Market',      zh:'舞鹤港海鲜市场',
+  {id:'p07', layer:'近景',cat:'観光',  dist:3.09,b:238.6,ja:'舞鶴港とれとれセンター',   en:'Toretore Fish Market',      zh:'舞鹤港海鲜市场',
    desc_ja:'日本海の新鮮な海産物が並ぶ市場。舞鶴湾のカニ・ブリ・サバなど旬の味覚を直売。',
    desc_en:'A lively fish market selling the freshest catch from Maizuru Bay.',
    desc_zh:'陈列着日本海新鲜海产品的市场，当季海味直接出售。'},
-  {layer:'近景',cat:'島',    dist:3.39,b:31.6, ja:'蛇島',                     en:'Jajima Island',             zh:'蛇岛',
+  {id:'p08', layer:'近景',cat:'島',    dist:3.39,b:31.6, ja:'蛇島',                     en:'Jajima Island',             zh:'蛇岛',
    desc_ja:'舞鶴湾内に浮かぶ小島。旧海軍の遺構が残り、湾の要衝として重要な役割を果たした歴史的な島。',
    desc_en:'A tiny island in Maizuru Bay with old naval structures.',
    desc_zh:'漂浮在舞鹤湾内保留有旧海军遗迹的小岛。'},
-  {layer:'中景',cat:'港湾',  dist:4.76,b:66.9, ja:'舞鶴港フェリーターミナル', en:'Ferry Terminal',            zh:'舞鹤港轮渡码头',
+  {id:'p09', layer:'中景',cat:'港湾',  dist:4.76,b:66.9, ja:'舞鶴港フェリーターミナル', en:'Ferry Terminal',            zh:'舞鹤港轮渡码头',
    desc_ja:'新日本海フェリーが発着する重要港湾。舞鶴〜小樽・敦賀便が運航し、北海道への玄関口。',
    desc_en:'Shin Nihonkai Ferry connects Maizuru to Otaru and Tsuruga.',
    desc_zh:'新日本海轮渡停靠的重要港湾，是通往北海道的门户。'},
-  {layer:'中景',cat:'歴史',  dist:6.91,b:44,   ja:'舞鶴引揚記念館',           en:'Repatriation Museum',       zh:'舞鹤归国纪念馆',
+  {id:'p10', layer:'中景',cat:'歴史',  dist:6.91,b:44,   ja:'舞鶴引揚記念館',           en:'Repatriation Museum',       zh:'舞鹤归国纪念馆',
    desc_ja:'戦後の海外引揚げを伝える国立記念館。ユネスコ「世界の記憶」に登録された資料を収蔵。',
    desc_en:'A national museum housing UNESCO Memory of the World materials on post-war repatriation.',
    desc_zh:'传达战后海外归国者经历的国立纪念馆。'},
-  {layer:'中景',cat:'文化',  dist:11.95,b:72.3,ja:'松尾寺',                   en:'Matsuodera Temple',         zh:'松尾寺',
+  {id:'p11', layer:'中景',cat:'文化',  dist:11.95,b:72.3,ja:'松尾寺',                   en:'Matsuodera Temple',         zh:'松尾寺',
    desc_ja:'西国三十三所第29番札所。奈良時代創建の古刹でボタンの名所としても知られる。',
    desc_en:'The 29th pilgrimage site of the Saigoku Kannon Circuit, famous for peonies.',
    desc_zh:'西国三十三所第29番礼所，奈良时代创建的古刹。'},
-  {layer:'中景',cat:'島',    dist:3.45,b:359.2,ja:'戸島（天然記念物）',        en:'Tojima Island',             zh:'户岛（天然纪念物）',
+  {id:'p12', layer:'中景',cat:'島',    dist:3.45,b:359.2,ja:'戸島（天然記念物）',        en:'Tojima Island',             zh:'户岛（天然纪念物）',
    desc_ja:'舞鶴湾の北端に位置する京都府の天然記念物。希少な植生が評価されている。',
    desc_en:'A Kyoto Prefecture Natural Monument for its rare coastal vegetation.',
    desc_zh:'京都府天然纪念物，因其珍稀植被而受到评定。'},
-  {layer:'中景',cat:'自然',  dist:7.2, b:315.5,ja:'由良川河口',               en:'Yura River Estuary',        zh:'由良川河口',
+  {id:'p13', layer:'中景',cat:'自然',  dist:7.2, b:315.5,ja:'由良川河口',               en:'Yura River Estuary',        zh:'由良川河口',
    desc_ja:'安寿と厨子王の伝説の舞台。渡り鳥の集まる豊かな水辺環境。',
    desc_en:'Tied to the legend of Anju and Zushiomaru, rich in migratory birds.',
    desc_zh:'安寿与厨子王传说的舞台，候鸟聚集的丰富水域。'},
-  {layer:'中景',cat:'灯台',  dist:9.29,b:358.9,ja:'博奕岬灯台',               en:'Bakuchi Cape Lighthouse',   zh:'博奕岬灯台',
+  {id:'p14', layer:'中景',cat:'灯台',  dist:9.29,b:358.9,ja:'博奕岬灯台',               en:'Bakuchi Cape Lighthouse',   zh:'博奕岬灯台',
    desc_ja:'若狭湾の入口に立つ歴史ある灯台。船舶の安全を守り続ける航路の要。',
    desc_en:'A historic lighthouse guarding the entrance to Wakasa Bay.',
    desc_zh:'矗立在若狭湾入口的历史灯台。'},
-  {layer:'遠景',cat:'島',    dist:25.14,b:16.9,ja:'冠島（神秘の島）',          en:'Kammurijima Island',        zh:'冠岛（神秘之岛）',
+  {id:'p15', layer:'遠景',cat:'島',    dist:25.14,b:16.9,ja:'冠島（神秘の島）',          en:'Kammurijima Island',        zh:'冠岛（神秘之岛）',
    desc_ja:'若狭湾に浮かぶ無人島。オオミズナギドリの繁殖地として国の天然記念物に指定。',
    desc_en:'An uninhabited island, National Natural Monument breeding ground of shearwaters.',
    desc_zh:'漂浮在若狭湾中的无人岛，国家天然纪念物。'},
-  {layer:'遠景',cat:'文化',  dist:24.26,b:344.7,ja:'伊根の舟屋',              en:'Ine Funaya Boat Houses',    zh:'伊根船屋',
+  {id:'p16', layer:'遠景',cat:'文化',  dist:24.26,b:344.7,ja:'伊根の舟屋',              en:'Ine Funaya Boat Houses',    zh:'伊根船屋',
    desc_ja:'伊根湾に沿って立ち並ぶ舟屋。重要伝統的建造物群保存地区に選定。',
    desc_en:'Fishermen\'s boat houses over Ine Bay, a Historic Preservation District.',
    desc_zh:'沿伊根湾并排而立的船屋，重要传统建筑物群保护地区。'},
-  {layer:'遠景',cat:'山',    dist:13.47,b:70.6,ja:'青葉山（若狭富士）',        en:'Mt. Aobayama',              zh:'青叶山（若狭富士）',
+  {id:'p17', layer:'遠景',cat:'山',    dist:13.47,b:70.6,ja:'青葉山（若狭富士）',        en:'Mt. Aobayama',              zh:'青叶山（若狭富士）',
    desc_ja:'標高693mの秀麗な双耳峰。その美しい山容から「若狭富士」と称される霊峰。',
    desc_en:'A 693m twin-peaked mountain nicknamed "Wakasa Fuji."',
    desc_zh:'海拔693m的秀丽双耳峰，被称为"若狭富士"。'},
-  {layer:'遠景',cat:'山',    dist:21.5, b:266.7,ja:'大江山（酒呑童子の伝説）', en:'Mt. Oeyama',                zh:'大江山',
+  {id:'p18', layer:'遠景',cat:'山',    dist:21.5, b:266.7,ja:'大江山（酒呑童子の伝説）', en:'Mt. Oeyama',                zh:'大江山',
    desc_ja:'酒呑童子の伝説で名高い連峰。源頼光による鬼退治の伝説が語り継がれる。',
    desc_en:'Legendary lair of Shuten-Doji, the great demon of Japanese folklore.',
    desc_zh:'以酒吞童子传说而闻名的山脉。'},
-  {layer:'遠景',cat:'岬',    dist:36.61,b:342.8,ja:'経ヶ岬（丹後半島最北端）', en:'Kyogamisaki Cape',          zh:'经岬（丹后半岛最北端）',
+  {id:'p19', layer:'遠景',cat:'岬',    dist:36.61,b:342.8,ja:'経ヶ岬（丹後半島最北端）', en:'Kyogamisaki Cape',          zh:'经岬（丹后半岛最北端）',
    desc_ja:'京都府最北端の岬。急峻なリアス式海岸と山中に立つ白い灯台が印象的。',
    desc_en:'The northernmost point of Kyoto Prefecture, crowned by a white lighthouse.',
    desc_zh:'京都府最北端的岬角，山中矗立着白色灯台。'},
-  {layer:'超遠景',cat:'霊峰',dist:149.89,b:58.8,ja:'白山（幻の霊峰）',         en:'Mt. Hakusan',               zh:'白山（幻之灵峰）',
+  {id:'p20', layer:'超遠景',cat:'霊峰',dist:149.89,b:58.8,ja:'白山（幻の霊峰）',         en:'Mt. Hakusan',               zh:'白山（幻之灵峰）',
    desc_ja:'約150km彼方に望む日本三霊山の一つ。晴天時に五老スカイタワーから視認できる幻の展望。',
    desc_en:'One of Japan\'s Three Sacred Mountains, visible ~150km away on clear days.',
    desc_zh:'约150公里外日本三灵山之一，晴天时可见的"幻之远眺"。'},
-  {layer:'超遠景',cat:'都市',dist:63.45,b:142.5,ja:'京都市',                  en:'Kyoto City',                zh:'京都市',
+  {id:'p21', layer:'超遠景',cat:'都市',dist:63.45,b:142.5,ja:'京都市',                  en:'Kyoto City',                zh:'京都市',
    desc_ja:'約63km南東。千年の都。世界遺産を多数擁する日本を代表する古都。',
    desc_en:'Japan\'s ancient capital with countless UNESCO World Heritage sites, 63km away.',
    desc_zh:'约63公里东南方向，拥有众多世界遗产的千年古都。'},
-  {layer:'超遠景',cat:'都市',dist:27.14,b:226.5,ja:'福知山市',                en:'Fukuchiyama City',          zh:'福知山市',
+  {id:'p22', layer:'超遠景',cat:'都市',dist:27.14,b:226.5,ja:'福知山市',                en:'Fukuchiyama City',          zh:'福知山市',
    desc_ja:'明智光秀が治めた城下町。福知山城が聳え、北近畿の交通・経済の要衝。',
    desc_en:'Castle town ruled by Akechi Mitsuhide, a key transportation hub.',
    desc_zh:'明智光秀统治的城下町，北近畿交通经济要地。'},
-  {layer:'超遠景',cat:'都市',dist:15.54,b:300.5,ja:'宮津市（天橋立）',         en:'Miyazu / Amanohashidate',   zh:'宫津市（天桥立）',
+  {id:'p23', layer:'超遠景',cat:'都市',dist:15.54,b:300.5,ja:'宮津市（天橋立）',         en:'Miyazu / Amanohashidate',   zh:'宫津市（天桥立）',
    desc_ja:'日本三景・天橋立を擁する丹後の中核都市。全長3.6kmの松林砂嘴が絶景。',
    desc_en:'Home to Amanohashidate, one of Japan\'s Three Views.',
-   desc_zh:'拥有日本三景之一天桥立的丹后核心城市。'}
+   desc_zh:'拥有日本三景之一天桥立的丹后核心城市。'},
+  {id:'p24', layer:'中景',cat:'産業',dist:6.75,b:358.8,ja:'舞鶴火力発電所',           en:'Maizuru Power Station',     zh:'舞鹤火力发电厂',
+   desc_ja:'大浦半島の西端に立つ関西電力唯一の石炭火力発電所。若狭湾国定公園内のため敷地を二段造成し、開発面積を最小限に抑えている。',
+   desc_en:'Kansai Electric\'s only coal-fired plant, sited on the western tip of the Oura Peninsula within Wakasa Bay Quasi-National Park.',
+   desc_zh:'位于大浦半岛西端，关西电力唯一的燃煤火力发电厂。因地处若狭湾国定公园内，将场地分两段造成以缩小开发面积。'},
+  {id:'p25', layer:'近景',cat:'港湾',dist:1.35,b:303.6,ja:'舞鶴国際ふ頭',             en:'Maizuru International Wharf', zh:'舞鹤国际码头',
+   desc_ja:'5万トン級のコンテナ船が接岸できる多目的国際ターミナル。愛称「みずなぎ埠頭」。中国・韓国・ロシア航路が就航する日本海側のゲートウェイ。',
+   desc_en:'A multipurpose international terminal handling 50,000-tonne container ships, nicknamed “Mizunagi Wharf.”',
+   desc_zh:'可停靠5万吨级集装箱船的多用途国际码头，昵称"水薙码头"。'}
 ];
 
 var DIRS_JA = ['北','北北東','北東','東北東','東','東南東','南東','南南東','南','南南西','南西','西南西','西','西北西','北西','北北西'];
@@ -465,6 +611,14 @@ var bearing = 30;
 var view = 'ar';
 var activeL = {近景:true,中景:true,遠景:true,超遠景:true};
 var FOV = 30;   // 現地実測値(縦持ち・cover表示での実効水平視野)
+
+// ── 現地案内板の照準設定 ──────────────────────
+// 案内板に照準（スリット/矢印）を設け、その狙い先の方位角をここに入れる。
+// 既定は舞鶴クレインブリッジ（座標から算出した真方位 35.7°）。
+// 設置後、実際の狙い先に合わせてこの2つを書き換えてください。
+var SIGN_BEARING = 35.7;
+var SIGN_TARGET_NAME = '舞鶴クレインブリッジ';
+// ────────────────────────────────────────────
 var W = window.innerWidth;
 var H = window.innerHeight;
 var dragging = false;
@@ -515,6 +669,10 @@ function bToX(b) {
 function layerY(l) {
   return H * ({近景:.50,中景:.42,遠景:.36,超遠景:.30}[l] || .42);
 }
+// ラベルを置く高さ（画面上部側の帯）。ランドマークに重ならないようにする
+function labelY(l) {
+  return H * ({近景:.30,中景:.25,遠景:.20,超遠景:.15}[l] || .25);
+}
 function stemH(l) {
   return {近景:40,中景:26,遠景:15,超遠景:7}[l] || 20;
 }
@@ -532,30 +690,70 @@ function renderAR() {
     if (!activeL[s.layer]) continue;
     var x = bToX(s.b);
     if (x < -100 || x > W + 100) continue;
-    vis.push({s:s, ax:x, ay:layerY(s.layer), lx:x, ly:layerY(s.layer), sh:stemH(s.layer)});
+    vis.push({s:s, ax:x, ay:layerY(s.layer), lx:x, ly:labelY(s.layer), sh:stemH(s.layer)});
   }
 
-  // Collision avoidance (8 passes)
-  for (var p = 0; p < 8; p++) {
-    for (var ci = 0; ci < vis.length; ci++) {
-      for (var cj = ci + 1; cj < vis.length; cj++) {
-        var a = vis[ci], b = vis[cj];
-        var ox = 130 - Math.abs(a.lx - b.lx);
-        var oy = 32 - Math.abs(a.ly - b.ly);
-        if (ox > 0 && oy > 0) {
-          if (oy < ox) {
-            var dy = a.ly <= b.ly ? -1 : 1;
-            a.ly -= dy * (oy / 2 + 2);
-            b.ly += dy * (oy / 2 + 2);
-          } else {
-            var dx = a.lx <= b.lx ? -1 : 1;
-            a.lx -= dx * (ox / 2 + 2);
-            b.lx += dx * (ox / 2 + 2);
-          }
-        }
+  // ラベル配置：段組みで確実に重なりを解消する
+  // ラベルは対応ポインターの真上（lx = ax）に固定し、縦の段だけをずらす
+  var LAYER_ORDER = {超遠景:0, 遠景:1, 中景:2, 近景:3};
+  var ROW_TOP   = H * 0.125;  // 最上段の位置
+  var ROW_PITCH = 29;         // 段の間隔
+  var MAX_ROWS  = 8;
+  var LBL_GAP   = 120;        // 同じ段で許容する最小の横間隔
+
+  // 遠いものを上の段に置く（遠近感を保つ）
+  vis.sort(function(a, b) {
+    var d = LAYER_ORDER[a.s.layer] - LAYER_ORDER[b.s.layer];
+    return d !== 0 ? d : a.ax - b.ax;
+  });
+
+  var rows = [];
+  for (var ri = 0; ri < MAX_ROWS; ri++) rows.push([]);
+
+  // 画面右上のフィルターUIと重ならないよう、その帯の右側を占有済みにする
+  var FILTER_BOTTOM = 190;          // フィルター列の下端(px)
+  for (var ri2 = 0; ri2 < MAX_ROWS; ri2++) {
+    if (ROW_TOP + ri2 * ROW_PITCH < FILTER_BOTTOM) rows[ri2].push(W - 26);
+  }
+
+  for (var k = 0; k < vis.length; k++) {
+    var it = vis[k];
+    it.lx = it.ax;                       // 真上に置く
+    var placed = false;
+    for (var r = 0; r < MAX_ROWS; r++) {
+      var ok = true;
+      for (var m = 0; m < rows[r].length; m++) {
+        if (Math.abs(rows[r][m] - it.lx) < LBL_GAP) { ok = false; break; }
+      }
+      if (ok) {
+        rows[r].push(it.lx);
+        it.ly = ROW_TOP + r * ROW_PITCH;
+        placed = true;
+        break;
       }
     }
+    if (!placed) {
+      // 全段が埋まった場合：最も余裕のある段を選ぶ（重なりを最小化）
+      var bestRow = 0, bestDist = -1;
+      for (var r2 = 0; r2 < MAX_ROWS; r2++) {
+        var minD = 1e9;
+        for (var m2 = 0; m2 < rows[r2].length; m2++) {
+          minD = Math.min(minD, Math.abs(rows[r2][m2] - it.lx));
+        }
+        if (minD > bestDist) { bestDist = minD; bestRow = r2; }
+      }
+      rows[bestRow].push(it.lx);
+      it.ly = ROW_TOP + bestRow * ROW_PITCH;
+    }
   }
+
+  // 引き出し線は1枚のSVGにまとめ、全ラベルより下のレイヤーに置く
+  var svgNS = 'http://www.w3.org/2000/svg';
+  var lineLayer = document.createElementNS(svgNS, 'svg');
+  lineLayer.setAttribute('width', W);
+  lineLayer.setAttribute('height', H);
+  lineLayer.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;overflow:visible;';
+  ar.appendChild(lineLayer);
 
   // Render
   for (var vi = 0; vi < vis.length; vi++) {
@@ -567,47 +765,45 @@ function renderAR() {
     pin.style.left = '0';
     pin.style.top = '0';
 
-    // Dot at anchor
-    var dot = document.createElement('div');
-    dot.className = 'pdot';
-    dot.style.left = Math.round(item.ax) - 4 + 'px';
-    dot.style.top = Math.round(item.ay) - 4 + 'px';
-    pin.appendChild(dot);
+    // 画面中央からの距離で透明度を落とす（外側ほど薄く）
+    var edge = Math.abs(item.ax - W / 2) / (W / 2);          // 0=中央 1=画面端
+    var fade = Math.max(0.12, 1 - Math.pow(edge, 1.6) * 0.95);
+    pin.style.opacity = fade.toFixed(3);
 
-    // Stem above dot
-    var stem = document.createElement('div');
-    stem.className = 'pstem';
-    stem.style.left = Math.round(item.ax) + 'px';
-    stem.style.top = Math.round(item.ay - item.sh) + 'px';
-    stem.style.height = item.sh + 'px';
-    pin.appendChild(stem);
+    // ぼかしたポインター（おおよその位置を示す）
+    var halo = document.createElement('div');
+    halo.className = 'pdot';
+    halo.style.left = Math.round(item.ax) - 32 + 'px';
+    halo.style.top  = Math.round(item.ay) - 32 + 'px';
+    pin.appendChild(halo);
+
+    var core = document.createElement('div');
+    core.className = 'pdot-core';
+    core.style.left = Math.round(item.ax) - 7 + 'px';
+    core.style.top  = Math.round(item.ay) - 7 + 'px';
+    pin.appendChild(core);
+
+    // ステムは引き出し線に統合
 
     // Label at adjusted position
     var lbl = document.createElement('div');
     lbl.className = 'plabel';
     lbl.textContent = getName(item.s);
     lbl.style.left = Math.round(item.lx) + 'px';
-    lbl.style.top = Math.round(item.ly - item.sh - 28) + 'px';
+    lbl.style.top = Math.round(item.ly) + 'px';
     pin.appendChild(lbl);
 
-    // Connector if label moved far from anchor
-    var ldx = item.lx - item.ax;
-    var ldy = (item.ly - item.sh - 14) - (item.ay - item.sh);
-    if (Math.abs(ldx) > 15 || Math.abs(ldy) > 15) {
-      var svgNS = 'http://www.w3.org/2000/svg';
-      var sv = document.createElementNS(svgNS, 'svg');
-      sv.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible;';
-      var ln = document.createElementNS(svgNS, 'line');
-      ln.setAttribute('x1', item.ax);
-      ln.setAttribute('y1', item.ay - item.sh);
-      ln.setAttribute('x2', item.lx);
-      ln.setAttribute('y2', item.ly - item.sh - 14);
-      ln.setAttribute('stroke', 'rgba(255,255,255,0.2)');
-      ln.setAttribute('stroke-width', '1');
-      ln.setAttribute('stroke-dasharray', '3,2');
-      sv.appendChild(ln);
-      pin.appendChild(sv);
-    }
+    // 引き出し線：ラベル下端 → ポインター（共有レイヤーへ）
+    var ln = document.createElementNS(svgNS, 'line');
+    ln.setAttribute('x1', item.lx);
+    ln.setAttribute('y1', item.ly + 22);
+    ln.setAttribute('x2', item.ax);
+    ln.setAttribute('y2', item.ay - 14);
+    ln.setAttribute('stroke', 'rgba(255,255,255,0.3)');
+    ln.setAttribute('stroke-width', '1');
+    ln.setAttribute('stroke-dasharray', '3,3');
+    ln.setAttribute('opacity', fade.toFixed(3));
+    lineLayer.appendChild(ln);
 
     (function(spot) {
       // tap detection: touchend with small movement
@@ -704,6 +900,7 @@ function openPanel(s) {
   pimg.style.display = 'none';
   pload.textContent = '画像を読み込み中...';
   document.getElementById('panel').classList.add('open');
+  document.body.classList.add('panel-open');
   // Fetch Wikipedia image
   fetchWikiImg(s.ja, function(url) {
     if (url) {
@@ -729,10 +926,12 @@ function fetchWikiImg(name, cb) {
 // Close panel
 document.getElementById('pclose').addEventListener('click', function() {
   document.getElementById('panel').classList.remove('open');
+  document.body.classList.remove('panel-open');
 });
 document.getElementById('pclose').addEventListener('touchend', function(e) {
   e.preventDefault();
   document.getElementById('panel').classList.remove('open');
+  document.body.classList.remove('panel-open');
 });
 
 // ==============================
@@ -921,6 +1120,7 @@ var lbtns = document.querySelectorAll('.lb');
 for (var li = 0; li < lbtns.length; li++) {
   (function(btn) {
     function switchLang() {
+      gAudioStop();
       lang = btn.dataset.l;
       for (var i = 0; i < lbtns.length; i++) {
         lbtns[i].classList.toggle('on', lbtns[i].dataset.l === lang);
@@ -942,6 +1142,155 @@ window.addEventListener('resize', function() {
   if (view === 'ar') renderAR();
   else { if (leafMap) leafMap.invalidateSize(); }
 });
+
+
+// ==============================
+// 位置合わせ（0度設定）
+// ==============================
+var aimTarget = null;
+
+// 視認しやすい目標候補
+var AIM_NAMES = ['舞鶴クレインブリッジ','舞鶴赤れんがパーク','ジャパンマリンユナイテッド',
+                 '蛇島','青葉山（若狭富士）','由良川河口','舞鶴引揚記念館'];
+
+function buildAimList() {
+  var list = document.getElementById('aim-list');
+  list.innerHTML = '';
+  AIM_NAMES.forEach(function(nm) {
+    var spot = null;
+    for (var i = 0; i < SPOTS.length; i++) { if (SPOTS[i].ja === nm) { spot = SPOTS[i]; break; } }
+    if (!spot) return;
+    var chip = document.createElement('button');
+    chip.className = 'aim-chip';
+    chip.textContent = getName(spot);
+    (function(sp, el) {
+      function pick() {
+        aimTarget = sp;
+        var all = list.querySelectorAll('.aim-chip');
+        for (var k = 0; k < all.length; k++) all[k].classList.remove('sel');
+        el.classList.add('sel');
+        document.getElementById('aim-ok').classList.remove('off');
+        document.getElementById('aim-desc').innerHTML =
+          '<b style="color:#ffdc50">' + getName(sp) + '</b> に黄色い線を重ねて<br>「決定」を押してください';
+      }
+      el.addEventListener('touchstart', function(e){ e.preventDefault(); pick(); }, {passive:false});
+      el.addEventListener('click', pick);
+    })(spot, chip);
+    list.appendChild(chip);
+  });
+}
+
+function openAim() {
+  aimTarget = null;
+  buildAimList();
+  document.getElementById('aim-ok').classList.add('off');
+  document.getElementById('aim-desc').innerHTML =
+    '案内板の照準をのぞき、<br>黄色い線を重ねてボタンを押してください';
+  document.getElementById('aim').classList.add('show');
+  document.getElementById('calib').style.display = 'none';
+}
+
+function closeAim() {
+  document.getElementById('aim').classList.remove('show');
+  document.getElementById('calib').style.display = 'block';
+}
+
+function applyAim() {
+  if (!aimTarget) return;
+  // 画面中央 = aimTarget.b になるようオフセットを決定
+  var off = aimTarget.b - headingRaw;
+  off = ((off + 180) % 360 + 360) % 360 - 180;   // -180..180 に正規化
+  bearingOffset = Math.round(off);
+  document.getElementById('calib-val').textContent =
+    (bearingOffset >= 0 ? '+' : '') + bearingOffset + '°';
+  bearing = ((headingRaw + bearingOffset) % 360 + 360) % 360;
+  renderAR(); updateHUD(); updateDbg();
+  closeAim();
+}
+
+// 案内板の照準方向を画面中央に一致させる
+function applySign() {
+  var off = SIGN_BEARING - headingRaw;
+  off = ((off + 180) % 360 + 360) % 360 - 180;
+  bearingOffset = Math.round(off);
+  document.getElementById('calib-val').textContent =
+    (bearingOffset >= 0 ? '+' : '') + bearingOffset + '°';
+  bearing = ((headingRaw + bearingOffset) % 360 + 360) % 360;
+  renderAR(); updateHUD(); updateDbg();
+  closeAim();
+}
+
+(function wireAim() {
+  function bind(id, fn) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('touchstart', function(e){ e.preventDefault(); fn(); }, {passive:false});
+    el.addEventListener('click', fn);
+  }
+  bind('aimbtn', openAim);
+  bind('aim-cancel', closeAim);
+  bind('aim-ok', applyAim);
+  bind('aim-sign', applySign);
+  var sg = document.getElementById('aim-sign');
+  if (sg) sg.textContent = '📋 案内板の照準に合わせる';
+})();
+
+
+// ==============================
+// 音声ガイド（スポットと無関係・単一ファイル）
+// ==============================
+// 言語ごとにURLを直接指定。空文字の言語は再生不可（ボタンがoff表示になる）
+var GLOBAL_AUDIO = {
+  ja: 'https://775maizuru.jp/wp-content/uploads/2023/01/radiosanpo2023-2-24.mp3',
+  en: ''   // 英語ナレーションのURLが決まり次第ここに設定
+};
+
+var gAudioEl = null;
+var gPlaying = false;
+
+function gAudioSetBtn(state) {
+  var b = document.getElementById('gaudio');
+  var ic = document.getElementById('gaudio-icon');
+  var lb = document.getElementById('gaudio-label');
+  if (!b) return;
+  b.classList.remove('playing', 'off');
+  if (state === 'playing') {
+    b.classList.add('playing'); ic.textContent = '■';
+    lb.textContent = lang === 'en' ? 'Stop' : lang === 'zh' ? '停止' : '停止';
+  } else if (state === 'off') {
+    b.classList.add('off'); ic.textContent = '🔇';
+    lb.textContent = lang === 'en' ? 'Unavailable' : lang === 'zh' ? '再生不可' : '再生不可';
+  } else {
+    ic.textContent = '🔊';
+    lb.textContent = lang === 'en' ? 'Audio Guide' : lang === 'zh' ? '语音导览' : '音声ガイド';
+  }
+}
+
+function gAudioStop() {
+  if (gAudioEl) { try { gAudioEl.pause(); } catch (e) {} gAudioEl = null; }
+  gPlaying = false;
+  gAudioSetBtn('idle');
+}
+
+function gAudioToggle() {
+  if (gPlaying) { gAudioStop(); return; }
+  var url = GLOBAL_AUDIO[lang];
+  if (!url) { gAudioSetBtn('off'); return; }
+  gAudioEl = new Audio(url);
+  gAudioEl.onplaying = function () { gPlaying = true; gAudioSetBtn('playing'); };
+  gAudioEl.onended   = function () { gPlaying = false; gAudioEl = null; gAudioSetBtn('idle'); };
+  gAudioEl.onerror   = function () { gPlaying = false; gAudioEl = null; gAudioSetBtn('off'); };
+  var p = gAudioEl.play();
+  if (p && p.catch) { p.catch(function () { gAudioSetBtn('off'); }); }
+}
+
+(function wireGAudio() {
+  var b = document.getElementById('gaudio');
+  if (!b) return;
+  b.addEventListener('touchstart', function (e) { e.preventDefault(); gAudioToggle(); }, { passive: false });
+  b.addEventListener('click', gAudioToggle);
+  gAudioSetBtn('idle');
+})();
 
 // ==============================
 // INIT
