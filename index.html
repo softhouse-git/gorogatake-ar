@@ -502,6 +502,15 @@ body{
 }
 .pin.hl .pdot{background:radial-gradient(circle,#ffdc50 0%,#ffdc50cc 26%,#ffdc5066 50%,#ffdc5022 68%,transparent 80%) !important;}
 .pin.hl .pdot-core{background:#ffdc50 !important;}
+
+#gaudio-err{
+  position:absolute;top:142px;left:12px;right:12px;z-index:45;
+  display:none;padding:10px 12px;border-radius:12px;
+  background:rgba(60,10,20,.92);border:1px solid rgba(255,120,120,.5);
+  color:#ffb4b4;font-size:11.5px;line-height:1.6;text-align:center;
+}
+#gaudio-err.show{display:block;}
+#gaudio-err a{color:#ffdc50;}
 </style>
 </head>
 <body>
@@ -546,6 +555,8 @@ body{
   <button class="lb" data-l="zh">中文</button>
 </div>
 
+<div id="gaudio-err"></div>
+<audio id="gaudio-el" preload="none" playsinline webkit-playsinline></audio>
 <button id="bgmode" class="off"><span id="bgmode-icon">🖼</span><span id="bgmode-label">360°写真</span></button>
 
 <button id="gaudio"><span id="gaudio-icon">🔊</span><span id="gaudio-label">音声ガイド</span></button>
@@ -627,7 +638,7 @@ body{
 
 <div id="panel">
   <div class="ph"></div>
-  <img id="pimg" src="" alt="">
+  <img id="pimg" alt="">
   <div id="pimgload"></div>
   <div class="ptop">
     <div class="pname" id="pname"></div>
@@ -898,7 +909,7 @@ function renderAR() {
   var lineLayer = document.createElementNS(svgNS, 'svg');
   lineLayer.setAttribute('width', W);
   lineLayer.setAttribute('height', H);
-  lineLayer.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 2px rgba(0,0,0,.9));';
+  lineLayer.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;overflow:visible;';
   ar.appendChild(lineLayer);
 
   // Render
@@ -948,7 +959,14 @@ function renderAR() {
     ln.setAttribute('stroke', LAYER_LINE[item.s.layer] || '#ffffff');
     ln.setAttribute('stroke-width', '1.6');
     ln.setAttribute('stroke-linecap', 'round');
-    ln.setAttribute('opacity', (fade * 0.85).toFixed(3));
+    ln.setAttribute('opacity', (fade * 0.9).toFixed(3));
+
+    // 明るい空でも沈まないよう、暗色の下線を先に敷く（filterは使わない）
+    var lnBase = ln.cloneNode(false);
+    lnBase.setAttribute('stroke', 'rgba(0,0,0,0.55)');
+    lnBase.setAttribute('stroke-width', '3.4');
+    lnBase.setAttribute('opacity', (fade * 0.7).toFixed(3));
+    lineLayer.appendChild(lnBase);
     lineLayer.appendChild(ln);
 
     // 線の根元にコネクタの点を打ち、ラベルとの対応を明確にする
@@ -1037,7 +1055,7 @@ function renderMap() {
 function openPanel(s) {
   document.getElementById('pname').textContent = getName(s);
   document.getElementById('pdesc').textContent = getDesc(s) || '';
-  var ll = {近景:'近景',中景:'中景',遠景:'遠景',超遠景:'超遠景'}[s.layer] || s.layer;
+  var ll = T().layerShort[s.layer] || s.layer;
   document.getElementById('ptags').innerHTML =
     '<span class="tag tagh">' + ll + '</span>' +
     '<span class="tag">' + s.cat + '</span>' +
@@ -1045,9 +1063,9 @@ function openPanel(s) {
   if (s.dist && s.b) {
     var dl = dirLabel(s.b);
     document.getElementById('pstats').innerHTML =
-      '<div><div class="sv">' + s.dist + 'km</div><div class="sl">距離</div></div>' +
-      '<div><div class="sv">' + Math.round(s.b) + '°</div><div class="sl">方位角</div></div>' +
-      '<div><div class="sv">' + dl + '</div><div class="sl">方角</div></div>';
+      '<div><div class="sv">' + s.dist + 'km</div><div class="sl">' + T().dist + '</div></div>' +
+      '<div><div class="sv">' + Math.round(s.b) + '°</div><div class="sl">' + T().bearing + '</div></div>' +
+      '<div><div class="sv">' + dl + '</div><div class="sl">' + T().dir + '</div></div>';
   } else {
     document.getElementById('pstats').innerHTML = '';
   }
@@ -1248,8 +1266,8 @@ for (var vi = 0; vi < vbtns.length; vi++) {
       else { mv.classList.remove('show'); }
       document.getElementById('gyrobtn').style.display = (view === 'ar' && !gyroActive) ? 'block' : 'none';
     }
+    btn.addEventListener('touchstart', function(e) { e.preventDefault(); e.stopPropagation(); switchView(); }, {passive:false});
     btn.addEventListener('click', switchView);
-    btn.addEventListener('touchend', function(e) { e.preventDefault(); switchView(); });
   })(vbtns[vi]);
 }
 
@@ -1266,8 +1284,8 @@ for (var fi = 0; fi < fbtns.length; fi++) {
       if (view === 'ar') renderAR();
       else renderMap();
     }
+    btn.addEventListener('touchstart', function(e) { e.preventDefault(); e.stopPropagation(); toggleFilter(); }, {passive:false});
     btn.addEventListener('click', toggleFilter);
-    btn.addEventListener('touchend', function(e) { e.preventDefault(); toggleFilter(); });
   })(fbtns[fi]);
 }
 
@@ -1278,17 +1296,21 @@ var lbtns = document.querySelectorAll('.lb');
 for (var li = 0; li < lbtns.length; li++) {
   (function(btn) {
     function switchLang() {
-      gAudioStop();
+      try { if (typeof gAudioStop === 'function') gAudioStop(); } catch (e) {}
       lang = btn.dataset.l;
       for (var i = 0; i < lbtns.length; i++) {
         lbtns[i].classList.toggle('on', lbtns[i].dataset.l === lang);
       }
+      // 言語に応じてUIの文字を更新
+      try { if (typeof gAudioSetBtn === 'function') gAudioSetBtn(GLOBAL_AUDIO[lang] ? 'idle' : 'off'); } catch (e) {}
+      try { if (typeof setBgMode === 'function') setBgMode(panoOn); } catch (e) {}
+      try { applyUILang(); } catch (e) {}
       if (view === 'ar') renderAR();
       else renderMap();
       updateHUD();
     }
+    btn.addEventListener('touchstart', function(e) { e.preventDefault(); e.stopPropagation(); switchLang(); }, {passive:false});
     btn.addEventListener('click', switchLang);
-    btn.addEventListener('touchend', function(e) { e.preventDefault(); switchLang(); });
   })(lbtns[li]);
 }
 
@@ -1477,6 +1499,197 @@ function closeManual() {
   bind('aim-ok', applyCal);
 })();
 
+
+
+// ==============================
+// UIの多言語辞書
+// ==============================
+var UI = {
+  ja: {
+    title:'五老スカイタワー', sub:'AR LANDSCAPE GUIDE',
+    layers:['近景 ～5km','中景 ～15km','遠景 ～40km','超遠景'],
+    layerShort:{近景:'近景',中景:'中景',遠景:'遠景',超遠景:'超遠景'},
+    arView:'ARビュー', mapView:'地図ビュー',
+    gyro:'向き検知をONにする',
+    calTitle:'方位調整', calOpen:'方位調整',
+    calLabel:'方位補正（左右のズレ）',
+    calBasic:'校正基準に合わせる（100°）',
+    calSub:'うまく合わないときは', calTwo:'2地点で微調整する',
+    dist:'距離', bearing:'方位角', dir:'方角',
+    panoOn:'360°写真', panoOff:'カメラ'
+  },
+  en: {
+    title:'Gorogatake Sky Tower', sub:'AR LANDSCAPE GUIDE',
+    layers:['Near ≤5km','Mid ≤15km','Far ≤40km','Ultra Far'],
+    layerShort:{近景:'Near',中景:'Mid',遠景:'Far',超遠景:'Ultra Far'},
+    arView:'AR View', mapView:'Map',
+    gyro:'Enable Compass',
+    calTitle:'Bearing', calOpen:'Bearing',
+    calLabel:'Bearing offset',
+    calBasic:'Align to reference (100°)',
+    calSub:'If it still looks off', calTwo:'Fine-tune with 2 points',
+    dist:'Distance', bearing:'Bearing', dir:'Direction',
+    panoOn:'360° Photo', panoOff:'Camera'
+  },
+  zh: {
+    title:'五老瞭望塔', sub:'AR 景观导览',
+    layers:['近景 ≤5km','中景 ≤15km','远景 ≤40km','超远景'],
+    layerShort:{近景:'近景',中景:'中景',遠景:'远景',超遠景:'超远景'},
+    arView:'AR视图', mapView:'地图',
+    gyro:'启用方位检测',
+    calTitle:'方位校准', calOpen:'方位校准',
+    calLabel:'方位补正（左右偏差）',
+    calBasic:'对准校准基准（100°）',
+    calSub:'若仍有偏差', calTwo:'用2个地点微调',
+    dist:'距离', bearing:'方位角', dir:'方向',
+    panoOn:'360°照片', panoOff:'相机'
+  }
+};
+
+function T() { return UI[lang] || UI.ja; }
+
+function applyUILang() {
+  var t = T();
+  var q = function (sel) { return document.querySelector(sel); };
+  var set = function (sel, txt) { var e = q(sel); if (e) e.textContent = txt; };
+
+  set('.ht', t.title);
+  set('.hs', t.sub);
+
+  // レイヤーフィルター（data-l は変更しない）
+  var order = ['近景','中景','遠景','超遠景'];
+  var fb = document.querySelectorAll('.fb');
+  for (var i = 0; i < fb.length; i++) {
+    var idx = order.indexOf(fb[i].dataset.l);
+    if (idx >= 0) fb[i].textContent = t.layers[idx];
+  }
+
+  // ビュー切替
+  var vb = document.querySelectorAll('.vb');
+  for (var j = 0; j < vb.length; j++) {
+    vb[j].textContent = (vb[j].dataset.v === 'ar') ? t.arView : t.mapView;
+  }
+
+  // ジャイロ・方位調整パネル
+  var g = document.getElementById('gyrobtn');
+  if (g && g.style.display !== 'none') g.textContent = '📡 ' + t.gyro;
+  set('#calib-title', t.calTitle);
+  set('#calib-label', t.calLabel);
+  set('#cal-basic', t.calBasic);
+  set('#cal-sub-label', t.calSub);
+  set('#cal-two', t.calTwo);
+  var co = document.getElementById('calib-open');
+  if (co) co.textContent = '⚙ ' + t.calOpen;
+}
+
+// ==============================
+// 音声ガイド（スポットとは独立した単独再生）
+// ==============================
+var GLOBAL_AUDIO = {
+  ja: 'https://775maizuru.jp/wp-content/uploads/2023/01/radiosanpo2023-2-24.mp3',
+  en: '',   // 英語ナレーションのURLが決まり次第ここに設定
+  zh: ''    // 中国語ナレーションのURL
+};
+
+var gPlaying  = false;
+var gAudioEl  = null;   // 常設の <audio> 要素
+
+function gAudioLabel(kind) {
+  var m = {
+    ja: { play:'音声ガイド', stop:'停止', load:'読み込み中…', na:'再生できません' },
+    en: { play:'Audio Guide', stop:'Stop', load:'Loading…',   na:'Unavailable' },
+    zh: { play:'语音导览',   stop:'停止', load:'加载中…',     na:'无法播放' }
+  };
+  return (m[lang] || m.ja)[kind];
+}
+
+function gAudioSetBtn(state) {
+  var b  = document.getElementById('gaudio');
+  var ic = document.getElementById('gaudio-icon');
+  var lb = document.getElementById('gaudio-label');
+  if (!b) return;
+  b.classList.remove('playing', 'off');
+  if (state === 'playing') {
+    b.classList.add('playing'); ic.textContent = '■'; lb.textContent = gAudioLabel('stop');
+  } else if (state === 'loading') {
+    ic.textContent = '⋯'; lb.textContent = gAudioLabel('load');
+  } else if (state === 'off') {
+    b.classList.add('off'); ic.textContent = '🔇'; lb.textContent = gAudioLabel('na');
+  } else {
+    ic.textContent = '🔊'; lb.textContent = gAudioLabel('play');
+  }
+}
+
+function gAudioStop() {
+  if (gAudioEl) {
+    try { gAudioEl.pause(); gAudioEl.currentTime = 0; } catch (e) {}
+  }
+  gPlaying = false;
+  gAudioSetBtn(GLOBAL_AUDIO[lang] ? 'idle' : 'off');
+}
+
+function gAudioToggle() {
+  if (!gAudioEl) gAudioEl = document.getElementById('gaudio-el');
+  if (!gAudioEl) return;
+
+  if (gPlaying) { gAudioStop(); return; }
+
+  var url = GLOBAL_AUDIO[lang];
+  if (!url) { gAudioSetBtn('off'); return; }
+
+  // 言語が変わったら読み込み直す
+  if (gAudioEl.getAttribute('data-src') !== url) {
+    gAudioEl.setAttribute('data-src', url);
+    gAudioEl.src = url;
+    try { gAudioEl.load(); } catch (e) {}
+  }
+
+  gAudioSetBtn('loading');
+
+  // ユーザー操作と同じ処理の流れで play() を呼ぶ（iOSの制約）
+  var pr = gAudioEl.play();
+  if (pr && pr.then) {
+    pr.then(function () {
+      gPlaying = true; gAudioSetBtn('playing');
+    }).catch(function (err) {
+      gPlaying = false; gAudioSetBtn('off');
+      showAudioError(err && err.name ? err.name : 'PlayError');
+    });
+  }
+}
+
+// 失敗理由を画面に出す（現地で原因を切り分けるため）
+function showAudioError(reason) {
+  var el = document.getElementById('gaudio-err');
+  if (!el) return;
+  var url = GLOBAL_AUDIO[lang] || '';
+  el.innerHTML = '音声を再生できませんでした（' + reason + '）<br>' +
+    '<a href="' + url + '" target="_blank" rel="noopener">ブラウザで直接開く</a>';
+  el.classList.add('show');
+  setTimeout(function () { el.classList.remove('show'); }, 8000);
+}
+
+(function wireGAudio() {
+  var b = document.getElementById('gaudio');
+  if (!b) return;
+  gAudioEl = document.getElementById('gaudio-el');
+
+  if (gAudioEl) {
+    gAudioEl.addEventListener('playing', function () { gPlaying = true;  gAudioSetBtn('playing'); });
+    gAudioEl.addEventListener('pause',   function () { if (!gAudioEl.ended) { gPlaying = false; gAudioSetBtn('idle'); } });
+    gAudioEl.addEventListener('ended',   function () { gPlaying = false; gAudioSetBtn('idle'); });
+    gAudioEl.addEventListener('error',   function () {
+      gPlaying = false; gAudioSetBtn('off');
+      var e = gAudioEl.error;
+      showAudioError('code ' + (e ? e.code : '?'));
+    });
+  }
+
+  b.addEventListener('touchstart', function (e) { e.preventDefault(); gAudioToggle(); }, { passive: false });
+  b.addEventListener('click', gAudioToggle);
+  gAudioSetBtn(GLOBAL_AUDIO[lang] ? 'idle' : 'off');
+})();
+
 // ==============================
 // 360度パノラマ背景
 // ==============================
@@ -1553,6 +1766,7 @@ function setBgMode(usePano) {
 // ==============================
 renderAR();
 updateHUD();
+try { applyUILang(); } catch (e) {}
 
 // ==============================
 // CAMERA AR
