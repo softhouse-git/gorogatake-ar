@@ -271,7 +271,7 @@ body{
   box-shadow:0 8px 40px rgba(0,0,0,.45);
 }
 .op-badge{font-size:10px;letter-spacing:.15em;color:rgba(91,200,255,.8);border:1px solid rgba(91,200,255,.3);border-radius:20px;padding:3px 12px;margin-bottom:18px;display:inline-block;background:rgba(91,200,255,.08);}
-.op-h1{font-size:26px;font-weight:700;color:#fff;line-height:1.4;margin-bottom:6px;letter-spacing:.04em;text-shadow:0 0 30px rgba(91,200,255,.4);}
+.op-h1{font-size:23px;font-weight:700;color:#fff;line-height:1.4;margin-bottom:6px;letter-spacing:.04em;text-shadow:0 0 30px rgba(91,200,255,.4);}
 .op-sub{font-size:11px;letter-spacing:.1em;color:rgba(255,255,255,.45);margin-bottom:8px;}
 .op-tag{font-size:13px;color:rgba(255,255,255,.55);line-height:1.7;margin-bottom:24px;}
 .op-ring{width:60px;height:60px;margin:0 auto 8px;position:relative;}
@@ -325,8 +325,8 @@ body{
 #aim-ok{border-color:#ffdc50;background:rgba(255,220,80,.2);color:#ffdc50;}
 #aim-ok.off{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.3);}
 #aim-cancel{border-color:rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);}
-#aimbtn{
-  margin-top:12px;padding:10px 0;border-radius:20px;width:100%;
+#cal-basic, #cal-two{
+  margin-top:10px;padding:10px 0;border-radius:20px;width:100%;
   border:1px solid rgba(255,220,80,.5);background:rgba(255,220,80,.12);
   color:#ffdc50;font-size:13px;font-weight:700;-webkit-appearance:none;
 }
@@ -378,6 +378,112 @@ body{
   user-select:none;
   -webkit-user-select:none;
 }
+
+/* ── 360度パノラマ背景（悪天候時・夜間用） ── */
+#pano{
+  position:absolute;inset:0;
+  background-repeat:repeat-x;
+  background-position:0 center;
+  display:none;
+}
+#pano.show{display:block;}
+
+/* 背景モード切替ボタン */
+#bgmode{
+  position:absolute;top:104px;left:12px;z-index:30;
+  padding:7px 14px;border-radius:20px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(0,0,0,.45);
+  color:rgba(255,255,255,.75);
+  font-size:11.5px;font-weight:600;letter-spacing:.02em;
+  -webkit-appearance:none;display:flex;align-items:center;gap:5px;
+  white-space:nowrap;font-family:inherit;
+}
+#bgmode.pano{border-color:#a78bfa;color:#a78bfa;background:rgba(167,139,250,.14);}
+#bgmode.off{display:none;}
+
+/* 校正基準ピン */
+.calpin{position:absolute;pointer-events:none;}
+.calpin-halo{
+  width:70px;height:70px;border-radius:50%;position:absolute;
+  background:radial-gradient(circle,#ffdc50 0%,#ffdc50cc 26%,#ffdc5066 50%,#ffdc5022 68%,transparent 80%);
+  filter:blur(9px);opacity:.85;
+}
+.calpin-core{width:14px;height:14px;border-radius:50%;position:absolute;background:#ffdc50;filter:blur(3px);}
+.calpin-label{
+  position:absolute;transform:translateX(-50%);white-space:nowrap;
+  padding:5px 12px;border-radius:18px;font-size:12px;font-weight:700;
+  background:rgba(0,0,0,.82);border:1px solid #ffdc50;color:#ffdc50;
+}
+#aim-hint{
+  font-size:12px;color:rgba(255,255,255,.6);text-align:center;
+  line-height:1.6;margin-bottom:12px;padding:0 6px;
+}
+
+#cal-sub-label{
+  font-size:10px;color:rgba(255,255,255,.35);
+  text-align:center;margin-top:12px;letter-spacing:.06em;
+}
+#cal-two{
+  margin-top:5px !important;
+  padding:8px 0 !important;
+  font-size:12px !important;
+  border-color:rgba(255,255,255,.25) !important;
+  background:rgba(255,255,255,.06) !important;
+  color:rgba(255,255,255,.6) !important;
+}
+
+/* ── 手動微調整モード（景色を見ながら合わせる） ── */
+#manual{position:absolute;inset:0;z-index:60;display:none;pointer-events:none;}
+#manual.show{display:block;}
+#man-top{
+  position:absolute;top:0;left:0;right:0;
+  padding:56px 18px 14px;text-align:center;
+  background:linear-gradient(180deg,rgba(0,10,30,.94),rgba(0,10,30,.6) 78%,transparent);
+  pointer-events:auto;
+}
+#man-step{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.1em;margin-bottom:5px;}
+#man-title{font-size:16px;font-weight:700;color:#ffdc50;margin-bottom:6px;}
+#man-desc{font-size:11.5px;color:rgba(255,255,255,.7);line-height:1.65;}
+#man-bottom{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:16px 14px 26px;
+  background:linear-gradient(0deg,rgba(0,10,30,.95),rgba(0,10,30,.8) 65%,transparent);
+  pointer-events:auto;
+}
+#man-guide{
+  font-size:11.5px;color:rgba(255,255,255,.6);text-align:center;
+  line-height:1.7;margin-bottom:12px;
+}
+#man-guide b{color:#ffdc50;}
+#man-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;}
+.man-btn{
+  border-radius:22px;-webkit-appearance:none;
+  border:1px solid rgba(255,220,80,.5);background:rgba(255,220,80,.12);
+  color:#ffdc50;font-weight:700;font-family:inherit;
+}
+.man-b5{width:52px;height:44px;font-size:15px;}
+.man-b1{width:42px;height:44px;font-size:12px;}
+#man-val{
+  font-size:19px;font-weight:700;color:#ffdc50;
+  width:66px;text-align:center;
+}
+#man-actions{display:flex;gap:10px;}
+#man-actions button{
+  flex:1;padding:12px 0;border-radius:22px;font-size:13.5px;font-weight:700;
+  -webkit-appearance:none;border:1px solid;font-family:inherit;
+}
+#man-next{border-color:#ffdc50;background:rgba(255,220,80,.2);color:#ffdc50;}
+#man-close{border-color:rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);}
+
+/* 微調整中の対象ピンを強調 */
+.pin.hl .plabel{
+  background:rgba(0,0,0,.9) !important;
+  border-color:#ffdc50 !important;color:#ffdc50 !important;
+  box-shadow:0 0 14px rgba(255,220,80,.5);
+}
+.pin.hl .pdot{background:radial-gradient(circle,#ffdc50 0%,#ffdc50cc 26%,#ffdc5066 50%,#ffdc5022 68%,transparent 80%) !important;}
+.pin.hl .pdot-core{background:#ffdc50 !important;}
 </style>
 </head>
 <body>
@@ -390,8 +496,8 @@ body{
   <div class="op-sea"></div>
   <div class="op-glass">
     <div class="op-badge">Gorogatake Sky Tower</div>
-    <div class="op-h1">天空の<br>透明な図書館</div>
-    <div class="op-sub">五老スカイタワー AR展望ガイド</div>
+    <div class="op-h1">五老スカイタワー<br>展望台AR</div>
+    <div class="op-sub">AR LANDSCAPE GUIDE</div>
     <div class="op-tag">絶景の「意味」を知り、<br>記憶に刻む。</div>
     <div class="op-ring">
       <svg viewBox="0 0 60 60">
@@ -406,6 +512,7 @@ body{
 </div>
 <div id="camera-bg">
   <video id="camera-video" autoplay playsinline muted></video>
+  <div id="pano"></div>
   <div id="camera-fallback"></div>
 </div>
 <div id="bg" style="position:absolute;inset:0;pointer-events:none;background:transparent;"></div>
@@ -420,6 +527,8 @@ body{
   <button class="lb" data-l="en">EN</button>
   <button class="lb" data-l="zh">中文</button>
 </div>
+
+<button id="bgmode" class="off"><span id="bgmode-icon">🖼</span><span id="bgmode-label">360°写真</span></button>
 
 <button id="gaudio"><span id="gaudio-icon">🔊</span><span id="gaudio-label">音声ガイド</span></button>
 
@@ -438,16 +547,35 @@ body{
 <div id="aim">
   <div id="aim-cross"></div>
   <div id="aim-top">
-    <div id="aim-title">目標に合わせて0度を設定</div>
-    <div id="aim-desc">案内板の照準をのぞき、<br>黄色い線を重ねてボタンを押してください</div>
+    <div id="aim-title">方位の校正</div>
+    <div id="aim-desc"></div>
   </div>
   <div id="aim-bottom">
-    <button id="aim-sign">📋 案内板の照準に合わせる（推奨）</button>
-    <div id="aim-or">または、見えている目標を選ぶ</div>
-    <div id="aim-list"></div>
+    <div id="aim-hint"></div>
     <div id="aim-actions">
       <button id="aim-cancel">キャンセル</button>
-      <button id="aim-ok" class="off">決定</button>
+      <button id="aim-ok">この位置で決定</button>
+    </div>
+  </div>
+</div>
+<div id="manual">
+  <div id="man-top">
+    <div id="man-step"></div>
+    <div id="man-title"></div>
+    <div id="man-desc"></div>
+  </div>
+  <div id="man-bottom">
+    <div id="man-guide"></div>
+    <div id="man-row">
+      <button class="man-btn man-b5" id="man-m5">−5</button>
+      <button class="man-btn man-b1" id="man-m1">−1</button>
+      <div id="man-val">-10°</div>
+      <button class="man-btn man-b1" id="man-p1">+1</button>
+      <button class="man-btn man-b5" id="man-p5">+5</button>
+    </div>
+    <div id="man-actions">
+      <button id="man-close">終了</button>
+      <button id="man-next">次の地点へ</button>
     </div>
   </div>
 </div>
@@ -459,13 +587,9 @@ body{
     <div id="calib-val">-25°</div>
     <button class="calib-btn" id="calib-plus">＋</button>
   </div>
-  <div id="calib-label" style="margin-top:12px;">視野角（ピンの移動量）</div>
-  <div id="calib-row">
-    <button class="calib-btn" id="fov-minus">－</button>
-    <div id="fov-val">30°</div>
-    <button class="calib-btn" id="fov-plus">＋</button>
-  </div>
-  <button id="aimbtn">🎯 目標に合わせて0度を設定</button>
+  <button id="cal-basic">校正基準に合わせる（100°）</button>
+  <div id="cal-sub-label">うまく合わないときは</div>
+  <button id="cal-two">2地点で微調整する</button>
 </div>
 
 <div id="vsw">
@@ -760,7 +884,7 @@ function renderAR() {
     var item = vis[vi];
     count++;
     var pin = document.createElement('div');
-    pin.className = 'pin';
+    pin.className = (manTarget && item.s === manTarget) ? 'pin hl' : 'pin';
     pin.setAttribute('data-l', item.s.layer);
     pin.style.left = '0';
     pin.style.top = '0';
@@ -768,7 +892,7 @@ function renderAR() {
     // 画面中央からの距離で透明度を落とす（外側ほど薄く）
     var edge = Math.abs(item.ax - W / 2) / (W / 2);          // 0=中央 1=画面端
     var fade = Math.max(0.12, 1 - Math.pow(edge, 1.6) * 0.95);
-    pin.style.opacity = fade.toFixed(3);
+    pin.style.opacity = (manTarget && item.s === manTarget) ? '1' : fade.toFixed(3);
 
     // ぼかしたポインター（おおよその位置を示す）
     var halo = document.createElement('div');
@@ -828,6 +952,8 @@ function renderAR() {
     ar.appendChild(pin);
   }
 
+  drawCalPin();
+  updatePano();
   document.getElementById('ct').textContent = count + ' スポットを表示中';
 }
 
@@ -1025,12 +1151,6 @@ function updateDbg() {
 
 var gyrobtn = document.getElementById('gyrobtn');
 
-function adjFov(delta) {
-  FOV = Math.max(30, Math.min(120, FOV + delta));
-  document.getElementById('fov-val').textContent = FOV + '°';
-  if (view === 'ar') renderAR();
-}
-
 function adjOffset(delta) {
   bearingOffset = (bearingOffset + delta + 360) % 360;
   if (bearingOffset > 180) bearingOffset -= 360;
@@ -1048,14 +1168,7 @@ function showCalib() {
   }
   mk('calib-minus', -5);
   mk('calib-plus', +5);
-  function mkf(id, d) {
-    var b = document.getElementById(id);
-    b.addEventListener('touchstart', function(e){ e.preventDefault(); adjFov(d); }, {passive:false});
-    b.addEventListener('click', function(){ adjFov(d); });
-  }
-  mkf('fov-minus', -3);
-  mkf('fov-plus', +3);
-  document.getElementById('fov-val').textContent = FOV + '°';
+
   updateDbg();
 }
 
@@ -1145,151 +1258,249 @@ window.addEventListener('resize', function() {
 
 
 // ==============================
-// 位置合わせ（0度設定）
+// 方位の校正
 // ==============================
-var aimTarget = null;
+// ① 基本：固定の校正基準（真東寄り・採石場）に画面中央を合わせる
+// ② 詳細：クレインブリッジと吉原入江の2点で合わせ、両者の平均を採用する
+var CALIB_BEARING = 100;              // 校正基準の真方位
+var CALIB_NAME    = '採石場';          // 校正基準の目印
+var TWO_POINTS    = ['舞鶴クレインブリッジ', '吉原入江（日本のベニス）'];
 
-// 視認しやすい目標候補
-var AIM_NAMES = ['舞鶴クレインブリッジ','舞鶴赤れんがパーク','ジャパンマリンユナイテッド',
-                 '蛇島','青葉山（若狭富士）','由良川河口','舞鶴引揚記念館'];
+var calMode   = null;   // 'basic' | 'two'
+var calPinOn  = false;  // 校正ピンを表示するか
 
-function buildAimList() {
-  var list = document.getElementById('aim-list');
-  list.innerHTML = '';
-  AIM_NAMES.forEach(function(nm) {
-    var spot = null;
-    for (var i = 0; i < SPOTS.length; i++) { if (SPOTS[i].ja === nm) { spot = SPOTS[i]; break; } }
-    if (!spot) return;
-    var chip = document.createElement('button');
-    chip.className = 'aim-chip';
-    chip.textContent = getName(spot);
-    (function(sp, el) {
-      function pick() {
-        aimTarget = sp;
-        var all = list.querySelectorAll('.aim-chip');
-        for (var k = 0; k < all.length; k++) all[k].classList.remove('sel');
-        el.classList.add('sel');
-        document.getElementById('aim-ok').classList.remove('off');
-        document.getElementById('aim-desc').innerHTML =
-          '<b style="color:#ffdc50">' + getName(sp) + '</b> に黄色い線を重ねて<br>「決定」を押してください';
-      }
-      el.addEventListener('touchstart', function(e){ e.preventDefault(); pick(); }, {passive:false});
-      el.addEventListener('click', pick);
-    })(spot, chip);
-    list.appendChild(chip);
-  });
+function findSpot(nameJa) {
+  for (var i = 0; i < SPOTS.length; i++) { if (SPOTS[i].ja === nameJa) return SPOTS[i]; }
+  return null;
 }
 
-function openAim() {
-  aimTarget = null;
-  buildAimList();
-  document.getElementById('aim-ok').classList.add('off');
+function norm180(d) { return ((d + 180) % 360 + 360) % 360 - 180; }
+
+function setOffset(off) {
+  bearingOffset = Math.round(norm180(off));
+  document.getElementById('calib-val').textContent =
+    (bearingOffset >= 0 ? '+' : '') + bearingOffset + '°';
+  bearing = ((headingRaw + bearingOffset) % 360 + 360) % 360;
+  renderAR(); updateHUD(); updateDbg();
+}
+
+// 校正基準ピンをARビューに描く（校正中のみ）
+function drawCalPin() {
+  if (!calPinOn) return;
+  var ar = document.getElementById('ar');
+  var diff = norm180(CALIB_BEARING - bearing);
+  if (Math.abs(diff) > FOV / 2 + 25) return;
+  var x = W / 2 + (diff / FOV) * W;
+  var y = H * 0.46;
+
+  var p = document.createElement('div');
+  p.className = 'calpin';
+  p.style.cssText = 'position:absolute;left:0;top:0;';
+
+  var halo = document.createElement('div');
+  halo.className = 'calpin-halo';
+  halo.style.left = Math.round(x) - 35 + 'px';
+  halo.style.top  = Math.round(y) - 35 + 'px';
+  p.appendChild(halo);
+
+  var core = document.createElement('div');
+  core.className = 'calpin-core';
+  core.style.left = Math.round(x) - 7 + 'px';
+  core.style.top  = Math.round(y) - 7 + 'px';
+  p.appendChild(core);
+
+  var lbl = document.createElement('div');
+  lbl.className = 'calpin-label';
+  lbl.textContent = '校正基準 ' + CALIB_BEARING + '°（' + CALIB_NAME + '）';
+  lbl.style.left = Math.round(x) + 'px';
+  lbl.style.top  = Math.round(y - 46) + 'px';
+  p.appendChild(lbl);
+
+  ar.appendChild(p);
+}
+
+function openCalBasic() {
+  calMode = 'basic';
+  calPinOn = true;
+  document.getElementById('aim-title').textContent = '① 校正基準に合わせる';
   document.getElementById('aim-desc').innerHTML =
-    '案内板の照準をのぞき、<br>黄色い線を重ねてボタンを押してください';
+    '正面の<b style="color:#ffdc50">' + CALIB_NAME + '</b>に<br>黄色い縦線を重ねてください';
+  document.getElementById('aim-hint').innerHTML =
+    '黄色いピンが実際の' + CALIB_NAME + 'に重なれば校正完了です。<br>' +
+    '基準方位 ' + CALIB_BEARING + '°';
   document.getElementById('aim').classList.add('show');
   document.getElementById('calib').style.display = 'none';
+  renderAR();
 }
 
-function closeAim() {
+function closeCal() {
+  calMode = null;
+  calPinOn = false;
   document.getElementById('aim').classList.remove('show');
   document.getElementById('calib').style.display = 'block';
+  renderAR();
 }
 
-function applyAim() {
-  if (!aimTarget) return;
-  // 画面中央 = aimTarget.b になるようオフセットを決定
-  var off = aimTarget.b - headingRaw;
-  off = ((off + 180) % 360 + 360) % 360 - 180;   // -180..180 に正規化
-  bearingOffset = Math.round(off);
-  document.getElementById('calib-val').textContent =
+function applyCal() {
+  if (calMode === 'basic') {
+    setOffset(CALIB_BEARING - headingRaw);
+    closeCal();
+  }
+}
+
+// ── サブ機能：2地点での手動微調整 ──
+// 校正基準で合わせてもなお景色とずれる場合に、実際の地物を見ながら追い込む
+var manTarget = null;
+var manStep   = 0;
+
+function openManual() {
+  manStep = 0;
+  document.getElementById('calib').style.display = 'none';
+  document.getElementById('manual').classList.add('show');
+  showManualStep();
+}
+
+function showManualStep() {
+  var sp = findSpot(TWO_POINTS[manStep]);
+  manTarget = sp;
+  var nm = sp ? getName(sp) : TWO_POINTS[manStep];
+
+  document.getElementById('man-step').textContent =
+    '微調整 ' + (manStep + 1) + ' / ' + TWO_POINTS.length;
+  document.getElementById('man-title').textContent = nm;
+  document.getElementById('man-desc').innerHTML =
+    (sp ? '真方位 ' + sp.b + '°　距離 ' + sp.dist + 'km<br>' : '') +
+    '黄色く光るピンを<br>実際の位置に重ねてください';
+  document.getElementById('man-guide').innerHTML =
+    'ピンが実物より<b>右</b>にある → <b>−</b>を押す<br>' +
+    'ピンが実物より<b>左</b>にある → <b>＋</b>を押す';
+  document.getElementById('man-next').textContent =
+    (manStep < TWO_POINTS.length - 1) ? '次の地点へ' : '完了';
+
+  updateManVal();
+  renderAR();
+}
+
+function updateManVal() {
+  document.getElementById('man-val').textContent =
     (bearingOffset >= 0 ? '+' : '') + bearingOffset + '°';
-  bearing = ((headingRaw + bearingOffset) % 360 + 360) % 360;
-  renderAR(); updateHUD(); updateDbg();
-  closeAim();
 }
 
-// 案内板の照準方向を画面中央に一致させる
-function applySign() {
-  var off = SIGN_BEARING - headingRaw;
-  off = ((off + 180) % 360 + 360) % 360 - 180;
-  bearingOffset = Math.round(off);
-  document.getElementById('calib-val').textContent =
-    (bearingOffset >= 0 ? '+' : '') + bearingOffset + '°';
-  bearing = ((headingRaw + bearingOffset) % 360 + 360) % 360;
-  renderAR(); updateHUD(); updateDbg();
-  closeAim();
+function manAdjust(d) {
+  setOffset(bearingOffset + d);
+  updateManVal();
 }
 
-(function wireAim() {
+function manNext() {
+  if (manStep < TWO_POINTS.length - 1) { manStep++; showManualStep(); }
+  else { closeManual(); }
+}
+
+function closeManual() {
+  manTarget = null;
+  manStep = 0;
+  document.getElementById('manual').classList.remove('show');
+  document.getElementById('calib').style.display = 'block';
+  renderAR();
+}
+
+(function wireManual() {
   function bind(id, fn) {
     var el = document.getElementById(id);
     if (!el) return;
     el.addEventListener('touchstart', function(e){ e.preventDefault(); fn(); }, {passive:false});
     el.addEventListener('click', fn);
   }
-  bind('aimbtn', openAim);
-  bind('aim-cancel', closeAim);
-  bind('aim-ok', applyAim);
-  bind('aim-sign', applySign);
-  var sg = document.getElementById('aim-sign');
-  if (sg) sg.textContent = '📋 案内板の照準に合わせる';
+  bind('man-m5', function(){ manAdjust(-5); });
+  bind('man-m1', function(){ manAdjust(-1); });
+  bind('man-p1', function(){ manAdjust(1);  });
+  bind('man-p5', function(){ manAdjust(5);  });
+  bind('man-next',  manNext);
+  bind('man-close', closeManual);
 })();
 
+(function wireCal() {
+  function bind(id, fn) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('touchstart', function(e){ e.preventDefault(); fn(); }, {passive:false});
+    el.addEventListener('click', fn);
+  }
+  bind('cal-basic', openCalBasic);
+  bind('cal-two',   openManual);
+  bind('aim-cancel', closeCal);
+  bind('aim-ok', applyCal);
+})();
 
 // ==============================
-// 音声ガイド（スポットと無関係・単一ファイル）
+// 360度パノラマ背景
 // ==============================
-// 言語ごとにURLを直接指定。空文字の言語は再生不可（ボタンがoff表示になる）
-var GLOBAL_AUDIO = {
-  ja: 'https://775maizuru.jp/wp-content/uploads/2023/01/radiosanpo2023-2-24.mp3',
-  en: ''   // 英語ナレーションのURLが決まり次第ここに設定
-};
+// 現地で撮影した360度写真（正距円筒図法・横:縦=2:1）を pano/ に置く。
+// 例）pano/gorogatake.jpg
+// 撮影後に PANO_NORTH を実測値へ調整すると、風景とピンが一致します。
+var PANO_URL   = 'pano/gorogatake.jpg';
+var PANO_NORTH = 0;      // 画像左端が指す方位角（度）。ズレる場合はここを調整
+var PANO_VPOS  = 50;     // 水平線の縦位置（%）。50=中央
 
-var gAudioEl = null;
-var gPlaying = false;
+var panoReady = false;
+var panoOn    = false;
+var cameraOn  = false;
 
-function gAudioSetBtn(state) {
-  var b = document.getElementById('gaudio');
-  var ic = document.getElementById('gaudio-icon');
-  var lb = document.getElementById('gaudio-label');
-  if (!b) return;
-  b.classList.remove('playing', 'off');
-  if (state === 'playing') {
-    b.classList.add('playing'); ic.textContent = '■';
-    lb.textContent = lang === 'en' ? 'Stop' : lang === 'zh' ? '停止' : '停止';
-  } else if (state === 'off') {
-    b.classList.add('off'); ic.textContent = '🔇';
-    lb.textContent = lang === 'en' ? 'Unavailable' : lang === 'zh' ? '再生不可' : '再生不可';
+function updatePano() {
+  if (!panoOn || !panoReady) return;
+  var el = document.getElementById('pano');
+  // 画面に映る画角(FOV)が全周360度のうち何割かで拡大率を決める
+  var scale = 360 / FOV;                     // 画像の表示幅 = 画面幅 × scale
+  var imgW  = W * scale;
+  // 画面中央が現在の方位を指すよう、半画角ぶん左にずらす
+  var left  = bearing - FOV / 2 - PANO_NORTH;
+  var shift = ((left % 360) + 360) % 360 / 360 * imgW;
+  el.style.backgroundSize = (scale * 100) + '% auto';
+  el.style.backgroundPosition = (-shift) + 'px ' + PANO_VPOS + '%';
+}
+
+function setBgMode(usePano) {
+  panoOn = usePano;
+  var el  = document.getElementById('pano');
+  var vid = document.getElementById('camera-video');
+  var btn = document.getElementById('bgmode');
+  var fb = document.getElementById('camera-fallback');
+  if (usePano) {
+    el.classList.add('show');
+    vid.style.display = 'none';
+    fb.style.display = 'none';
+    btn.classList.add('pano');
+    document.getElementById('bgmode-icon').textContent = '📷';
+    document.getElementById('bgmode-label').textContent =
+      lang === 'en' ? 'Camera' : lang === 'zh' ? '相机' : 'カメラ';
+    updatePano();
   } else {
-    ic.textContent = '🔊';
-    lb.textContent = lang === 'en' ? 'Audio Guide' : lang === 'zh' ? '语音导览' : '音声ガイド';
+    el.classList.remove('show');
+    vid.style.display = '';
+    fb.style.display = cameraOn ? 'none' : 'block';
+    btn.classList.remove('pano');
+    document.getElementById('bgmode-icon').textContent = '🖼';
+    document.getElementById('bgmode-label').textContent =
+      lang === 'en' ? '360° Photo' : lang === 'zh' ? '360°照片' : '360°写真';
   }
 }
 
-function gAudioStop() {
-  if (gAudioEl) { try { gAudioEl.pause(); } catch (e) {} gAudioEl = null; }
-  gPlaying = false;
-  gAudioSetBtn('idle');
-}
+// パノラマ画像が存在するときだけ切替ボタンを出す
+(function initPano() {
+  var probe = new Image();
+  probe.onload = function() {
+    panoReady = true;
+    document.getElementById('pano').style.backgroundImage = 'url("' + PANO_URL + '")';
+    document.getElementById('bgmode').classList.remove('off');
+    updatePano();
+  };
+  probe.onerror = function() { panoReady = false; };  // 未設置ならボタンを出さない
+  probe.src = PANO_URL;
 
-function gAudioToggle() {
-  if (gPlaying) { gAudioStop(); return; }
-  var url = GLOBAL_AUDIO[lang];
-  if (!url) { gAudioSetBtn('off'); return; }
-  gAudioEl = new Audio(url);
-  gAudioEl.onplaying = function () { gPlaying = true; gAudioSetBtn('playing'); };
-  gAudioEl.onended   = function () { gPlaying = false; gAudioEl = null; gAudioSetBtn('idle'); };
-  gAudioEl.onerror   = function () { gPlaying = false; gAudioEl = null; gAudioSetBtn('off'); };
-  var p = gAudioEl.play();
-  if (p && p.catch) { p.catch(function () { gAudioSetBtn('off'); }); }
-}
-
-(function wireGAudio() {
-  var b = document.getElementById('gaudio');
-  if (!b) return;
-  b.addEventListener('touchstart', function (e) { e.preventDefault(); gAudioToggle(); }, { passive: false });
-  b.addEventListener('click', gAudioToggle);
-  gAudioSetBtn('idle');
+  var btn = document.getElementById('bgmode');
+  function toggle() { setBgMode(!panoOn); }
+  btn.addEventListener('touchstart', function(e){ e.preventDefault(); toggle(); }, {passive:false});
+  btn.addEventListener('click', toggle);
 })();
 
 // ==============================
@@ -1325,6 +1536,7 @@ updateHUD();
       video.play();
       // カメラON → フォールバック背景と海を非表示
       fallback.style.display = 'none';
+      cameraOn = true;
       console.log('Camera started');
     })
     .catch(function(err) {
