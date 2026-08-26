@@ -167,30 +167,48 @@ body{
 .vb.on{background:rgba(91,200,255,.18);color:#5bc8ff;}
 
 /* スポット数 */
-#ct{
-  position:absolute;bottom:100px;left:50%;transform:translateX(-50%);
-  font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.06em;
-  z-index:20;pointer-events:none;white-space:nowrap;
-}
 
 /* 方位補正UI */
 #calib{
-  position:absolute;bottom:108px;left:50%;transform:translateX(-50%);
-  z-index:40;display:none;
-  background:rgba(0,10,30,.88);border:1px solid rgba(91,200,255,.3);
-  border-radius:16px;padding:10px 16px;text-align:center;white-space:nowrap;
+  position:absolute;bottom:104px;right:10px;
+  z-index:41;display:none;
+  background:rgba(0,10,30,.9);border:1px solid rgba(91,200,255,.3);
+  border-radius:14px;padding:8px 12px 11px;text-align:center;white-space:nowrap;
 }
+#calib.show{display:block;}
+
+#calib-head{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom:6px;
+}
+#calib-title{font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.06em;}
+#calib-close{
+  width:22px;height:22px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.7);font-size:11px;line-height:1;
+  -webkit-appearance:none;flex-shrink:0;font-family:inherit;
+}
+
+/* 折りたたみ時の呼び出しボタン */
+#calib-open{
+  position:absolute;bottom:104px;right:10px;z-index:40;display:none;
+  padding:7px 13px;border-radius:18px;
+  border:1px solid rgba(91,200,255,.4);background:rgba(0,10,30,.6);
+  color:rgba(91,200,255,.85);font-size:11.5px;font-weight:600;
+  -webkit-appearance:none;font-family:inherit;white-space:nowrap;
+}
+#calib-open.show{display:block;}
 #calib-label{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.05em;margin-bottom:8px;}
-#calib-row{display:flex;align-items:center;gap:12px;justify-content:center;}
+#calib-row{display:flex;align-items:center;gap:9px;justify-content:center;}
 .calib-btn{
-  width:36px;height:36px;border-radius:50%;
+  width:32px;height:32px;border-radius:50%;
   border:1px solid rgba(91,200,255,.5);background:rgba(91,200,255,.12);
   color:#5bc8ff;font-size:20px;font-weight:700;
   cursor:pointer;-webkit-appearance:none;
   display:flex;align-items:center;justify-content:center;line-height:1;
 }
 #dbg{
-  font-size:10px;color:#3de8c8;letter-spacing:.04em;
+  font-size:9px;color:#3de8c8;letter-spacing:.04em;
   margin-bottom:8px;font-family:ui-monospace,monospace;
 }
 #flipbtn{
@@ -199,7 +217,7 @@ body{
   color:#5bc8ff;font-size:13px;font-weight:700;
   -webkit-appearance:none;cursor:pointer;display:block;width:100%;
 }
-#calib-val{font-size:17px;font-weight:700;color:#5bc8ff;width:64px;text-align:center;}
+#calib-val{font-size:15px;font-weight:700;color:#5bc8ff;width:56px;text-align:center;}
 
 /* ジャイロボタン（画面下部に固定） */
 #gyrobtn{
@@ -542,7 +560,6 @@ body{
 <div id="ar"></div>
 <div id="mapview"><div id="leafmap"></div></div>
 
-<div id="ct"></div>
 <button id="gyrobtn">📡 向き検知をONにする</button>
 <div id="aim">
   <div id="aim-cross"></div>
@@ -579,7 +596,12 @@ body{
     </div>
   </div>
 </div>
+<button id="calib-open">⚙ 方位調整</button>
 <div id="calib">
+  <div id="calib-head">
+    <div id="calib-title">方位調整</div>
+    <button id="calib-close">✕</button>
+  </div>
   <div id="dbg">-</div>
   <div id="calib-label">方位補正（左右のズレ）</div>
   <div id="calib-row">
@@ -876,7 +898,7 @@ function renderAR() {
   var lineLayer = document.createElementNS(svgNS, 'svg');
   lineLayer.setAttribute('width', W);
   lineLayer.setAttribute('height', H);
-  lineLayer.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;overflow:visible;';
+  lineLayer.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 2px rgba(0,0,0,.9));';
   ar.appendChild(lineLayer);
 
   // Render
@@ -923,11 +945,20 @@ function renderAR() {
     ln.setAttribute('y1', item.ly + 22);
     ln.setAttribute('x2', item.ax);
     ln.setAttribute('y2', item.ay - 14);
-    ln.setAttribute('stroke', 'rgba(255,255,255,0.3)');
-    ln.setAttribute('stroke-width', '1');
-    ln.setAttribute('stroke-dasharray', '3,3');
-    ln.setAttribute('opacity', fade.toFixed(3));
+    ln.setAttribute('stroke', LAYER_LINE[item.s.layer] || '#ffffff');
+    ln.setAttribute('stroke-width', '1.6');
+    ln.setAttribute('stroke-linecap', 'round');
+    ln.setAttribute('opacity', (fade * 0.85).toFixed(3));
     lineLayer.appendChild(ln);
+
+    // 線の根元にコネクタの点を打ち、ラベルとの対応を明確にする
+    var cap = document.createElementNS(svgNS, 'circle');
+    cap.setAttribute('cx', item.lx);
+    cap.setAttribute('cy', item.ly + 22);
+    cap.setAttribute('r', '2.2');
+    cap.setAttribute('fill', LAYER_LINE[item.s.layer] || '#ffffff');
+    cap.setAttribute('opacity', (fade * 0.9).toFixed(3));
+    lineLayer.appendChild(cap);
 
     (function(spot) {
       // tap detection: touchend with small movement
@@ -954,7 +985,6 @@ function renderAR() {
 
   drawCalPin();
   updatePano();
-  document.getElementById('ct').textContent = count + ' スポットを表示中';
 }
 
 // ==============================
@@ -971,6 +1001,7 @@ function bdToLatLon(b, d) {
   return [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
 }
 
+var LAYER_LINE = {近景:'#8ad8ff',中景:'#7df0dc',遠景:'#c4aefc',超遠景:'#ff9dcb'};
 var COLS = {近景:'#5bc8ff',中景:'#3de8c8',遠景:'#a78bfa',超遠景:'#f472b6'};
 
 function renderMap() {
@@ -1157,10 +1188,15 @@ function adjOffset(delta) {
   document.getElementById('calib-val').textContent = (bearingOffset >= 0 ? '+' : '') + bearingOffset + '°';
 }
 
+// 方位調整パネルの開閉
+function calibShow(open) {
+  document.getElementById('calib').classList.toggle('show', open);
+  document.getElementById('calib-open').classList.toggle('show', !open);
+}
+
 function showCalib() {
   gyrobtn.style.display = 'none';
-  var cal = document.getElementById('calib');
-  cal.style.display = 'block';
+  calibShow(true);
   function mk(id, delta) {
     var b = document.getElementById(id);
     b.addEventListener('touchstart', function(e) { e.preventDefault(); adjOffset(delta); }, {passive:false});
@@ -1168,6 +1204,15 @@ function showCalib() {
   }
   mk('calib-minus', -5);
   mk('calib-plus', +5);
+
+  function bindT(id, fn) {
+    var b = document.getElementById(id);
+    if (!b) return;
+    b.addEventListener('touchstart', function(e){ e.preventDefault(); fn(); }, {passive:false});
+    b.addEventListener('click', fn);
+  }
+  bindT('calib-close', function(){ calibShow(false); });
+  bindT('calib-open',  function(){ calibShow(true);  });
 
   updateDbg();
 }
@@ -1329,7 +1374,7 @@ function openCalBasic() {
     '黄色いピンが実際の' + CALIB_NAME + 'に重なれば校正完了です。<br>' +
     '基準方位 ' + CALIB_BEARING + '°';
   document.getElementById('aim').classList.add('show');
-  document.getElementById('calib').style.display = 'none';
+  calibShow(false);
   renderAR();
 }
 
@@ -1337,7 +1382,7 @@ function closeCal() {
   calMode = null;
   calPinOn = false;
   document.getElementById('aim').classList.remove('show');
-  document.getElementById('calib').style.display = 'block';
+  calibShow(true);
   renderAR();
 }
 
@@ -1355,7 +1400,7 @@ var manStep   = 0;
 
 function openManual() {
   manStep = 0;
-  document.getElementById('calib').style.display = 'none';
+  calibShow(false);
   document.getElementById('manual').classList.add('show');
   showManualStep();
 }
@@ -1400,7 +1445,7 @@ function closeManual() {
   manTarget = null;
   manStep = 0;
   document.getElementById('manual').classList.remove('show');
-  document.getElementById('calib').style.display = 'block';
+  calibShow(true);
   renderAR();
 }
 
