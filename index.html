@@ -13,15 +13,29 @@ window.addEventListener('load', function() {
   var circle = document.getElementById('opc');
   var numEl = document.getElementById('opn');
   var total = 163.4;
-  var count = 5;
+  var TOTAL_SEC = 7;   // 表示時間
+  var SHOW_FROM = 5;   // カウントダウンを出し始める残り秒数
+  var ring = document.querySelector('.op-ring');
   var n = 0;
+
+  // カウントダウンが始まるまでは数字も注記も隠しておく
+  var note = document.querySelector('.op-note');
+  if (ring) ring.style.visibility = 'hidden';
+  if (note) note.style.visibility = 'hidden';
 
   var t = setInterval(function() {
     n++;
-    var remaining = 5 - n;
-    numEl.textContent = remaining;
-    circle.setAttribute('stroke-dashoffset', String(total * n / 5));
-    if (n >= 5) {
+    var remaining = TOTAL_SEC - n;
+
+    if (remaining <= SHOW_FROM) {
+      if (ring) ring.style.visibility = 'visible';
+      if (note) note.style.visibility = 'visible';
+      numEl.textContent = remaining;
+      var prog = (SHOW_FROM - remaining) / SHOW_FROM;
+      circle.setAttribute('stroke-dashoffset', String(total * prog));
+    }
+
+    if (n >= TOTAL_SEC) {
       clearInterval(t);
       op.style.opacity = '0';
       setTimeout(function() { op.style.display = 'none'; }, 650);
@@ -73,20 +87,20 @@ body{
   z-index:30;pointer-events:none;
 }
 .ht,.hs,.hd,.hdir{text-shadow:0 1px 4px rgba(0,0,0,.85);}
-.ht{font-size:13px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.8);}
-.hs{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px;}
+.ht{font-size:17px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.92);}
+.hs{font-size:9.5px;color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.06em;}
 .hd{font-size:28px;font-weight:300;text-align:right;line-height:1;}
 .hdir{font-size:10px;color:rgba(255,255,255,.5);text-align:right;margin-top:2px;}
 
 /* 言語 */
 #lang{
-  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:104px;left:10px;
   display:flex;gap:2px;
-  background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:3px;
-  z-index:31;
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:3px;
+  z-index:41;
 }
 .lb{
-  padding:5px 12px;border-radius:14px;border:none;
+  padding:6px 11px;border-radius:14px;border:none;
   background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:500;
   cursor:pointer;-webkit-appearance:none;
 }
@@ -148,6 +162,14 @@ body{
 #mapview{position:absolute;inset:0;z-index:10;display:none;}
 #mapview.show{display:block;}
 #leafmap{width:100%;height:100%;}
+.leaflet-shadow-pane{z-index:250;}
+.osm-dark{filter:invert(1) hue-rotate(190deg) brightness(.92) contrast(.95) saturate(.7);}
+.leaflet-control-attribution{
+  background:rgba(0,0,0,.45) !important;
+  color:rgba(255,255,255,.45) !important;
+  font-size:8px !important;
+}
+.leaflet-control-attribution a{color:rgba(255,255,255,.6) !important;}
 .lf-tip{background:rgba(0,0,0,.8)!important;border:1px solid rgba(255,255,255,.2)!important;color:#fff!important;font-size:11px!important;border-radius:8px!important;padding:2px 8px!important;white-space:nowrap!important;box-shadow:none!important;}
 .lf-tip::before{display:none!important;}
 .lf-tower{background:rgba(0,0,0,.8)!important;border:1px solid #ffd740!important;color:#ffd740!important;font-size:11px!important;font-weight:700!important;border-radius:8px!important;padding:2px 8px!important;box-shadow:none!important;}
@@ -170,7 +192,7 @@ body{
 
 /* 方位補正UI */
 #calib{
-  position:absolute;bottom:104px;right:10px;
+  position:absolute;bottom:150px;right:10px;
   z-index:41;display:none;
   background:rgba(0,10,30,.9);border:1px solid rgba(91,200,255,.3);
   border-radius:14px;padding:8px 12px 11px;text-align:center;white-space:nowrap;
@@ -191,7 +213,7 @@ body{
 
 /* 折りたたみ時の呼び出しボタン */
 #calib-open{
-  position:absolute;bottom:104px;right:10px;z-index:40;display:none;
+  position:absolute;bottom:150px;right:10px;z-index:40;display:none;
   padding:7px 13px;border-radius:18px;
   border:1px solid rgba(91,200,255,.4);background:rgba(0,10,30,.6);
   color:rgba(91,200,255,.85);font-size:11.5px;font-weight:600;
@@ -221,7 +243,7 @@ body{
 
 /* ジャイロボタン（画面下部に固定） */
 #gyrobtn{
-  position:absolute;bottom:112px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:152px;left:50%;transform:translateX(-50%);
   padding:12px 28px;border-radius:28px;
   border:2px solid #5bc8ff;background:rgba(0,20,50,.9);
   color:#5bc8ff;font-size:15px;font-weight:700;
@@ -241,8 +263,19 @@ body{
   -webkit-overflow-scrolling:touch;
 }
 #panel.open{transform:translateY(0);}
-#panel.open ~ #credit, body.panel-open #credit{
-  transition:opacity .3s ease;opacity:0;}
+#op-credit{
+  position:absolute;
+  bottom:26px;left:0;right:0;
+  z-index:12;
+  text-align:center;
+  font-size:10.5px;
+  line-height:1.8;
+  color:rgba(255,255,255,.6);
+  letter-spacing:.03em;
+  text-shadow:0 1px 4px rgba(0,0,0,.8);
+  pointer-events:none;
+  padding:0 20px;
+}
 .ph{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:14px auto 16px;}
 .ptop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
 .pname{font-size:20px;font-weight:700;line-height:1.3;flex:1;}
@@ -321,8 +354,8 @@ body{
 #aim-desc{font-size:12px;color:rgba(255,255,255,.65);line-height:1.6;}
 #aim-bottom{
   position:absolute;bottom:0;left:0;right:0;
-  padding:14px 12px 26px;
-  background:linear-gradient(0deg,rgba(0,10,30,.95),rgba(0,10,30,.8) 60%,transparent);
+  padding:16px 12px 24px;
+  background:linear-gradient(0deg,rgba(0,10,30,.97) 0%,rgba(0,10,30,.94) 70%,rgba(0,10,30,.5) 90%,transparent);
 }
 #aim-list{
   display:flex;gap:8px;overflow-x:auto;padding:2px 4px 12px;
@@ -434,7 +467,7 @@ body{
   background:rgba(0,0,0,.82);border:1px solid #ffdc50;color:#ffdc50;
 }
 #aim-hint{
-  font-size:12px;color:rgba(255,255,255,.6);text-align:center;
+  font-size:11.5px;color:rgba(255,255,255,.6);text-align:center;
   line-height:1.6;margin-bottom:12px;padding:0 6px;
 }
 
@@ -466,7 +499,7 @@ body{
 #man-bottom{
   position:absolute;bottom:0;left:0;right:0;
   padding:16px 14px 26px;
-  background:linear-gradient(0deg,rgba(0,10,30,.95),rgba(0,10,30,.8) 65%,transparent);
+  background:linear-gradient(0deg,rgba(0,10,30,.97) 0%,rgba(0,10,30,.94) 70%,rgba(0,10,30,.5) 90%,transparent);
   pointer-events:auto;
 }
 #man-guide{
@@ -511,6 +544,15 @@ body{
 }
 #gaudio-err.show{display:block;}
 #gaudio-err a{color:#ffdc50;}
+
+.cal-tabs{display:flex;gap:8px;margin:0 0 12px;}
+.cal-tab{
+  flex:1;padding:9px 0;border-radius:20px;
+  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.55);font-size:12px;font-weight:600;
+  -webkit-appearance:none;font-family:inherit;white-space:nowrap;
+}
+.cal-tab.on{border-color:#ffdc50;background:rgba(255,220,80,.18);color:#ffdc50;}
 </style>
 </head>
 <body>
@@ -535,6 +577,11 @@ body{
       <div class="op-ring-n" id="opn">5</div>
     </div>
     <div class="op-note">秒後に自動で開始</div>
+  </div>
+  <div id="op-credit">
+    中小企業等事業再構築促進補助金（令和8年事業）<br>
+    事業者名：株式会社パブリックメディア京都<br>
+    交付番号：R226DN00010000
   </div>
 </div>
 <div id="camera-bg">
@@ -580,6 +627,10 @@ body{
   </div>
   <div id="aim-bottom">
     <div id="aim-hint"></div>
+    <div class="cal-tabs">
+      <button class="cal-tab on" data-i="0">① 採石場</button>
+      <button class="cal-tab" data-i="1">② 舞鶴国際ふ頭</button>
+    </div>
     <div id="aim-actions">
       <button id="aim-cancel">キャンセル</button>
       <button id="aim-ok">この位置で決定</button>
@@ -594,6 +645,10 @@ body{
   </div>
   <div id="man-bottom">
     <div id="man-guide"></div>
+    <div class="cal-tabs">
+      <button class="man-tab cal-tab on" data-i="0">① 採石場</button>
+      <button class="man-tab cal-tab" data-i="1">② 舞鶴国際ふ頭</button>
+    </div>
     <div id="man-row">
       <button class="man-btn man-b5" id="man-m5">−5</button>
       <button class="man-btn man-b1" id="man-m1">−1</button>
@@ -620,20 +675,14 @@ body{
     <div id="calib-val">-25°</div>
     <button class="calib-btn" id="calib-plus">＋</button>
   </div>
-  <button id="cal-basic">校正基準に合わせる（100°）</button>
+  <button id="cal-basic">方位調整を始める</button>
   <div id="cal-sub-label">うまく合わないときは</div>
-  <button id="cal-two">2地点で微調整する</button>
+  <button id="cal-two">方位を修正する</button>
 </div>
 
 <div id="vsw">
   <button class="vb on" data-v="ar">ARビュー</button>
   <button class="vb" data-v="map">地図ビュー</button>
-</div>
-
-<div id="credit">
-  中小企業等事業再構築促進補助金（令和8年事業）<br>
-  事業者名：株式会社パブリックメディア京都<br>
-  交付番号：R226DN00010000
 </div>
 
 <div id="panel">
@@ -917,7 +966,7 @@ function renderAR() {
     var item = vis[vi];
     count++;
     var pin = document.createElement('div');
-    pin.className = (manTarget && item.s === manTarget) ? 'pin hl' : 'pin';
+    pin.className = 'pin';
     pin.setAttribute('data-l', item.s.layer);
     pin.style.left = '0';
     pin.style.top = '0';
@@ -925,7 +974,7 @@ function renderAR() {
     // 画面中央からの距離で透明度を落とす（外側ほど薄く）
     var edge = Math.abs(item.ax - W / 2) / (W / 2);          // 0=中央 1=画面端
     var fade = Math.max(0.12, 1 - Math.pow(edge, 1.6) * 0.95);
-    pin.style.opacity = (manTarget && item.s === manTarget) ? '1' : fade.toFixed(3);
+    pin.style.opacity = fade.toFixed(3);
 
     // ぼかしたポインター（おおよその位置を示す）
     var halo = document.createElement('div');
@@ -1024,8 +1073,42 @@ var COLS = {近景:'#5bc8ff',中景:'#3de8c8',遠景:'#a78bfa',超遠景:'#f472b
 
 function renderMap() {
   if (!leafMap) {
-    leafMap = L.map('leafmap', {center:[BASE_LAT, BASE_LON], zoom:10, zoomControl:true, attributionControl:false});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:18, subdomains:'abcd'}).addTo(leafMap);
+    leafMap = L.map('leafmap', {center:[BASE_LAT, BASE_LON], zoom:11, zoomControl:true, attributionControl:true});
+    // Esri World Dark Gray Canvas（APIキー不要・常設利用可）
+    // 地物レイヤーと地名レイヤーの2枚重ねで構成する
+    var esriBase = L.tileLayer(
+      'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 16,
+        crossOrigin: true,
+        attribution: 'Esri, HERE, Garmin, &copy; OpenStreetMap contributors'
+      });
+
+    var esriLabels = L.tileLayer(
+      'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 16,
+        crossOrigin: true,
+        pane: 'shadowPane'
+      });
+
+    // 読み込めない場合はOSMへ自動で切り替える
+    var osmFallback = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      crossOrigin: true,
+      className: 'osm-dark',
+      attribution: '&copy; OpenStreetMap'
+    });
+
+    var switched = false;
+    esriBase.on('tileerror', function () {
+      if (switched) return;
+      switched = true;
+      leafMap.removeLayer(esriBase);
+      if (leafMap.hasLayer(esriLabels)) leafMap.removeLayer(esriLabels);
+      osmFallback.addTo(leafMap);
+    });
+
+    esriBase.addTo(leafMap);
+    esriLabels.addTo(leafMap);
     var ti = L.divIcon({html:'<div style="width:14px;height:14px;border-radius:50%;background:#ffd740;border:3px solid #fff;box-shadow:0 0 12px rgba(255,215,64,.7);"></div>',className:'',iconSize:[14,14],iconAnchor:[7,7]});
     L.marker([BASE_LAT, BASE_LON], {icon:ti}).bindTooltip('五老スカイタワー', {permanent:true, direction:'top', className:'lf-tower', offset:[0,-8]}).addTo(leafMap);
   }
@@ -1329,9 +1412,12 @@ window.addEventListener('resize', function() {
 // ==============================
 // ① 基本：固定の校正基準（真東寄り・採石場）に画面中央を合わせる
 // ② 詳細：クレインブリッジと吉原入江の2点で合わせ、両者の平均を採用する
-var CALIB_BEARING = 100;              // 校正基準の真方位
-var CALIB_NAME    = '採石場';          // 校正基準の目印
-var TWO_POINTS    = ['舞鶴クレインブリッジ', '吉原入江（日本のベニス）'];
+// 校正基準（第1優先＝採石場、第2優先＝舞鶴国際ふ頭）
+var CALIB_TARGETS = [
+  { name:'採石場',       bearing:100.0 },
+  { name:'舞鶴国際ふ頭', bearing:303.6 }
+];
+var calIdx = 0;   // 現在選んでいる校正基準
 
 var calMode   = null;   // 'basic' | 'two'
 var calPinOn  = false;  // 校正ピンを表示するか
@@ -1355,7 +1441,8 @@ function setOffset(off) {
 function drawCalPin() {
   if (!calPinOn) return;
   var ar = document.getElementById('ar');
-  var diff = norm180(CALIB_BEARING - bearing);
+  var ct = CALIB_TARGETS[calIdx];
+  var diff = norm180(ct.bearing - bearing);
   if (Math.abs(diff) > FOV / 2 + 25) return;
   var x = W / 2 + (diff / FOV) * W;
   var y = H * 0.46;
@@ -1378,7 +1465,7 @@ function drawCalPin() {
 
   var lbl = document.createElement('div');
   lbl.className = 'calpin-label';
-  lbl.textContent = '校正基準 ' + CALIB_BEARING + '°（' + CALIB_NAME + '）';
+  lbl.textContent = ct.name + ' ' + ct.bearing + '°';
   lbl.style.left = Math.round(x) + 'px';
   lbl.style.top  = Math.round(y - 46) + 'px';
   p.appendChild(lbl);
@@ -1389,15 +1476,30 @@ function drawCalPin() {
 function openCalBasic() {
   calMode = 'basic';
   calPinOn = true;
-  document.getElementById('aim-title').textContent = '① 校正基準に合わせる';
-  document.getElementById('aim-desc').innerHTML =
-    '正面の<b style="color:#ffdc50">' + CALIB_NAME + '</b>に<br>黄色い縦線を重ねてください';
-  document.getElementById('aim-hint').innerHTML =
-    '黄色いピンが実際の' + CALIB_NAME + 'に重なれば校正完了です。<br>' +
-    '基準方位 ' + CALIB_BEARING + '°';
+  updateCalTargetUI();
   document.getElementById('aim').classList.add('show');
   calibShow(false);
   renderAR();
+}
+
+// 校正基準の切り替え（採石場 ⇄ 舞鶴国際ふ頭）
+function setCalTarget(i) {
+  calIdx = i;
+  updateCalTargetUI();
+  renderAR();
+}
+
+function updateCalTargetUI() {
+  var ct = CALIB_TARGETS[calIdx];
+  document.getElementById('aim-title').textContent = '方位調整';
+  document.getElementById('aim-desc').innerHTML =
+    '正面の<b style="color:#ffdc50">' + ct.name + '</b>に<br>黄色い縦線を重ねてください';
+  document.getElementById('aim-hint').innerHTML =
+    '黄色いピンが実際の' + ct.name + 'に重なれば完了です。<br>基準方位 ' + ct.bearing + '°';
+  var tabs = document.querySelectorAll('.cal-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.toggle('on', parseInt(tabs[i].dataset.i, 10) === calIdx);
+  }
 }
 
 function closeCal() {
@@ -1410,43 +1512,47 @@ function closeCal() {
 
 function applyCal() {
   if (calMode === 'basic') {
-    setOffset(CALIB_BEARING - headingRaw);
+    setOffset(CALIB_TARGETS[calIdx].bearing - headingRaw);
     closeCal();
   }
 }
 
-// ── サブ機能：2地点での手動微調整 ──
-// 校正基準で合わせてもなお景色とずれる場合に、実際の地物を見ながら追い込む
-var manTarget = null;
-var manStep   = 0;
+// ── サブ機能：方位を手で修正する ──
+// 校正基準に合わせてもなお景色とずれる場合に、実際の地物を見ながら追い込む
+var manIdx = 0;
 
 function openManual() {
-  manStep = 0;
+  manIdx = calIdx;
   calibShow(false);
   document.getElementById('manual').classList.add('show');
   showManualStep();
 }
 
 function showManualStep() {
-  var sp = findSpot(TWO_POINTS[manStep]);
-  manTarget = sp;
-  var nm = sp ? getName(sp) : TWO_POINTS[manStep];
+  var ct = CALIB_TARGETS[manIdx];
+  calPinOn = true;
 
-  document.getElementById('man-step').textContent =
-    '微調整 ' + (manStep + 1) + ' / ' + TWO_POINTS.length;
-  document.getElementById('man-title').textContent = nm;
+  document.getElementById('man-step').textContent = '方位の修正';
+  document.getElementById('man-title').textContent = ct.name;
   document.getElementById('man-desc').innerHTML =
-    (sp ? '真方位 ' + sp.b + '°　距離 ' + sp.dist + 'km<br>' : '') +
-    '黄色く光るピンを<br>実際の位置に重ねてください';
+    '真方位 ' + ct.bearing + '°<br>黄色いピンを実際の位置に重ねてください';
   document.getElementById('man-guide').innerHTML =
     'ピンが実物より<b>右</b>にある → <b>−</b>を押す<br>' +
     'ピンが実物より<b>左</b>にある → <b>＋</b>を押す';
   document.getElementById('man-next').textContent =
-    (manStep < TWO_POINTS.length - 1) ? '次の地点へ' : '完了';
+    (manIdx === 0) ? '舞鶴国際ふ頭で確認' : '完了';
 
+  var tabs = document.querySelectorAll('.man-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.toggle('on', parseInt(tabs[i].dataset.i, 10) === manIdx);
+  }
+
+  calIdx = manIdx;   // 校正ピンの表示対象を合わせる
   updateManVal();
   renderAR();
 }
+
+function setManTarget(i) { manIdx = i; showManualStep(); }
 
 function updateManVal() {
   document.getElementById('man-val').textContent =
@@ -1459,13 +1565,12 @@ function manAdjust(d) {
 }
 
 function manNext() {
-  if (manStep < TWO_POINTS.length - 1) { manStep++; showManualStep(); }
+  if (manIdx === 0) { setManTarget(1); }
   else { closeManual(); }
 }
 
 function closeManual() {
-  manTarget = null;
-  manStep = 0;
+  calPinOn = false;
   document.getElementById('manual').classList.remove('show');
   calibShow(true);
   renderAR();
@@ -1482,6 +1587,15 @@ function closeManual() {
   bind('man-m1', function(){ manAdjust(-1); });
   bind('man-p1', function(){ manAdjust(1);  });
   bind('man-p5', function(){ manAdjust(5);  });
+  var mtabs = document.querySelectorAll('.man-tab');
+  for (var k = 0; k < mtabs.length; k++) {
+    (function(el){
+      var idx = parseInt(el.dataset.i, 10);
+      function pick(){ setManTarget(idx); }
+      el.addEventListener('touchstart', function(e){ e.preventDefault(); pick(); }, {passive:false});
+      el.addEventListener('click', pick);
+    })(mtabs[k]);
+  }
   bind('man-next',  manNext);
   bind('man-close', closeManual);
 })();
@@ -1494,6 +1608,15 @@ function closeManual() {
     el.addEventListener('click', fn);
   }
   bind('cal-basic', openCalBasic);
+  var ctabs = document.querySelectorAll('#aim .cal-tab');
+  for (var i = 0; i < ctabs.length; i++) {
+    (function(el){
+      var idx = parseInt(el.dataset.i, 10);
+      function pick(){ setCalTarget(idx); }
+      el.addEventListener('touchstart', function(e){ e.preventDefault(); pick(); }, {passive:false});
+      el.addEventListener('click', pick);
+    })(ctabs[i]);
+  }
   bind('cal-two',   openManual);
   bind('aim-cancel', closeCal);
   bind('aim-ok', applyCal);
@@ -1513,8 +1636,8 @@ var UI = {
     gyro:'向き検知をONにする',
     calTitle:'方位調整', calOpen:'方位調整',
     calLabel:'方位補正（左右のズレ）',
-    calBasic:'校正基準に合わせる（100°）',
-    calSub:'うまく合わないときは', calTwo:'2地点で微調整する',
+    calBasic:'方位調整を始める',
+    calSub:'うまく合わないときは', calTwo:'方位を修正する',
     dist:'距離', bearing:'方位角', dir:'方角',
     panoOn:'360°写真', panoOff:'カメラ'
   },
@@ -1810,15 +1933,29 @@ window.addEventListener('load', function() {
   var circle = document.getElementById('opc');
   var numEl = document.getElementById('opn');
   var total = 163.4;
-  var count = 5;
+  var TOTAL_SEC = 7;   // 表示時間
+  var SHOW_FROM = 5;   // カウントダウンを出し始める残り秒数
+  var ring = document.querySelector('.op-ring');
   var n = 0;
+
+  // カウントダウンが始まるまでは数字も注記も隠しておく
+  var note = document.querySelector('.op-note');
+  if (ring) ring.style.visibility = 'hidden';
+  if (note) note.style.visibility = 'hidden';
 
   var t = setInterval(function() {
     n++;
-    var remaining = 5 - n;
-    numEl.textContent = remaining;
-    circle.setAttribute('stroke-dashoffset', String(total * n / 5));
-    if (n >= 5) {
+    var remaining = TOTAL_SEC - n;
+
+    if (remaining <= SHOW_FROM) {
+      if (ring) ring.style.visibility = 'visible';
+      if (note) note.style.visibility = 'visible';
+      numEl.textContent = remaining;
+      var prog = (SHOW_FROM - remaining) / SHOW_FROM;
+      circle.setAttribute('stroke-dashoffset', String(total * prog));
+    }
+
+    if (n >= TOTAL_SEC) {
       clearInterval(t);
       op.style.opacity = '0';
       setTimeout(function() { op.style.display = 'none'; }, 650);
