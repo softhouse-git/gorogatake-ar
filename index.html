@@ -545,14 +545,15 @@ body{
 #gaudio-err.show{display:block;}
 #gaudio-err a{color:#ffdc50;}
 
-.cal-tabs{display:flex;gap:8px;margin:0 0 12px;}
+.cal-tabs{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px;}
 .cal-tab{
-  flex:1;padding:9px 0;border-radius:20px;
+  flex:1 1 calc(50% - 4px);padding:9px 0;border-radius:20px;
   border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);
-  color:rgba(255,255,255,.55);font-size:12px;font-weight:600;
+  color:rgba(255,255,255,.55);font-size:11.5px;font-weight:600;
   -webkit-appearance:none;font-family:inherit;white-space:nowrap;
 }
 .cal-tab.on{border-color:#ffdc50;background:rgba(255,220,80,.18);color:#ffdc50;}
+
 </style>
 </head>
 <body>
@@ -629,7 +630,9 @@ body{
     <div id="aim-hint"></div>
     <div class="cal-tabs">
       <button class="cal-tab on" data-i="0">① 採石場</button>
-      <button class="cal-tab" data-i="1">② 舞鶴国際ふ頭</button>
+      <button class="cal-tab" data-i="1">② 国際ふ頭</button>
+      <button class="cal-tab" data-i="2">③ 火力発電所</button>
+      <button class="cal-tab" data-i="3">④ とれとれ</button>
     </div>
     <div id="aim-actions">
       <button id="aim-cancel">キャンセル</button>
@@ -647,7 +650,9 @@ body{
     <div id="man-guide"></div>
     <div class="cal-tabs">
       <button class="man-tab cal-tab on" data-i="0">① 採石場</button>
-      <button class="man-tab cal-tab" data-i="1">② 舞鶴国際ふ頭</button>
+      <button class="man-tab cal-tab" data-i="1">② 国際ふ頭</button>
+      <button class="man-tab cal-tab" data-i="2">③ 火力発電所</button>
+      <button class="man-tab cal-tab" data-i="3">④ とれとれ</button>
     </div>
     <div id="man-row">
       <button class="man-btn man-b5" id="man-m5">−5</button>
@@ -800,7 +805,7 @@ var SPOTS = [{id:'p01', layer:'近景',cat:'旧軍港',dist:3.35,b:57.5, ja:'海
    desc_ja:'大浦半島の西端に立つ関西電力唯一の石炭火力発電所。若狭湾国定公園内のため敷地を二段造成し、開発面積を最小限に抑えている。',
    desc_en:'Kansai Electric\'s only coal-fired plant, sited on the western tip of the Oura Peninsula within Wakasa Bay Quasi-National Park.',
    desc_zh:'位于大浦半岛西端，关西电力唯一的燃煤火力发电厂。因地处若狭湾国定公园内，将场地分两段造成以缩小开发面积。'},
-  {id:'p25', layer:'近景',cat:'港湾',dist:1.35,b:303.6,ja:'舞鶴国際ふ頭',             en:'Maizuru International Wharf', zh:'舞鹤国际码头',
+  {id:'p25', layer:'近景',cat:'港湾',dist:1.35,b:303.6,y:0.66,ja:'舞鶴国際ふ頭',             en:'Maizuru International Wharf', zh:'舞鹤国际码头',
    desc_ja:'5万トン級のコンテナ船が接岸できる多目的国際ターミナル。愛称「みずなぎ埠頭」。中国・韓国・ロシア航路が就航する日本海側のゲートウェイ。',
    desc_en:'A multipurpose international terminal handling 50,000-tonne container ships, nicknamed “Mizunagi Wharf.”',
    desc_zh:'可停靠5万吨级集装箱船的多用途国际码头，昵称"水薙码头"。'}
@@ -872,7 +877,10 @@ function bToX(b) {
   while (diff < -180) diff += 360;
   return W / 2 + (diff / FOV) * W;
 }
-function layerY(l) {
+function layerY(s) {
+  // スポット個別の高さ指定があれば優先する（俯角が大きい至近距離など）
+  if (s && typeof s.y === 'number') return H * s.y;
+  var l = (s && s.layer) ? s.layer : s;
   return H * ({近景:.50,中景:.42,遠景:.36,超遠景:.30}[l] || .42);
 }
 // ラベルを置く高さ（画面上部側の帯）。ランドマークに重ならないようにする
@@ -896,7 +904,7 @@ function renderAR() {
     if (!activeL[s.layer]) continue;
     var x = bToX(s.b);
     if (x < -100 || x > W + 100) continue;
-    vis.push({s:s, ax:x, ay:layerY(s.layer), lx:x, ly:labelY(s.layer), sh:stemH(s.layer)});
+    vis.push({s:s, ax:x, ay:layerY(s), lx:x, ly:labelY(s.layer), sh:stemH(s.layer)});
   }
 
   // ラベル配置：段組みで確実に重なりを解消する
@@ -1414,8 +1422,10 @@ window.addEventListener('resize', function() {
 // ② 詳細：クレインブリッジと吉原入江の2点で合わせ、両者の平均を採用する
 // 校正基準（第1優先＝採石場、第2優先＝舞鶴国際ふ頭）
 var CALIB_TARGETS = [
-  { name:'採石場',       bearing:100.0 },
-  { name:'舞鶴国際ふ頭', bearing:303.6 }
+  { name:'採石場',             bearing:100.0 },
+  { name:'舞鶴国際ふ頭',       bearing:303.6 },
+  { name:'舞鶴火力発電所',     bearing:354.0 },
+  { name:'舞鶴港とれとれセンター', bearing:235.0 }
 ];
 var calIdx = 0;   // 現在選んでいる校正基準
 
@@ -1513,6 +1523,7 @@ function closeCal() {
 function applyCal() {
   if (calMode === 'basic') {
     setOffset(CALIB_TARGETS[calIdx].bearing - headingRaw);
+    saveCalib();
     closeCal();
   }
 }
@@ -1540,7 +1551,9 @@ function showManualStep() {
     'ピンが実物より<b>右</b>にある → <b>−</b>を押す<br>' +
     'ピンが実物より<b>左</b>にある → <b>＋</b>を押す';
   document.getElementById('man-next').textContent =
-    (manIdx === 0) ? '舞鶴国際ふ頭で確認' : '完了';
+    (manIdx < CALIB_TARGETS.length - 1)
+      ? CALIB_TARGETS[manIdx + 1].name + 'で確認'
+      : '完了';
 
   var tabs = document.querySelectorAll('.man-tab');
   for (var i = 0; i < tabs.length; i++) {
@@ -1562,10 +1575,11 @@ function updateManVal() {
 function manAdjust(d) {
   setOffset(bearingOffset + d);
   updateManVal();
+  saveCalib();
 }
 
 function manNext() {
-  if (manIdx === 0) { setManTarget(1); }
+  if (manIdx < CALIB_TARGETS.length - 1) { setManTarget(manIdx + 1); }
   else { closeManual(); }
 }
 
@@ -1884,9 +1898,29 @@ function setBgMode(usePano) {
   btn.addEventListener('click', toggle);
 })();
 
+
+// ── 方位補正を端末に保存する（次回起動時に復元） ──
+function saveCalib() {
+  try {
+    localStorage.setItem('goro_cal', JSON.stringify({ off: bearingOffset }));
+  } catch (e) {}
+}
+
+function loadCalib() {
+  try {
+    var v = JSON.parse(localStorage.getItem('goro_cal') || 'null');
+    if (v && isFinite(v.off)) {
+      bearingOffset = v.off;
+      var el = document.getElementById('calib-val');
+      if (el) el.textContent = (bearingOffset >= 0 ? '+' : '') + bearingOffset + '°';
+    }
+  } catch (e) {}
+}
+
 // ==============================
 // INIT
 // ==============================
+loadCalib();
 renderAR();
 updateHUD();
 try { applyUILang(); } catch (e) {}
