@@ -107,12 +107,13 @@ body{
 .lb.on{background:rgba(91,200,255,.2);color:#5bc8ff;border:1px solid rgba(91,200,255,.3);}
 
 /* フィルター */
-#filters{position:absolute;top:58px;right:12px;display:flex;flex-direction:column;gap:5px;z-index:30;}
+#filters{position:absolute;top:58px;right:12px;display:flex;flex-direction:column;align-items:stretch;gap:5px;z-index:30;}
 .fb{
   padding:5px 10px;border-radius:12px;
   border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.5);
   color:rgba(255,255,255,.4);font-size:11px;cursor:pointer;
-  white-space:nowrap;text-align:right;-webkit-appearance:none;
+  white-space:nowrap;text-align:left;-webkit-appearance:none;
+  padding-left:12px;
 }
 .fb.on{color:#fff;background:rgba(20,50,90,.7);}
 .fb[data-l="近景"].on{border-color:#5bc8ff;color:#5bc8ff;}
@@ -554,6 +555,25 @@ body{
 }
 .cal-tab.on{border-color:#ffdc50;background:rgba(255,220,80,.18);color:#ffdc50;}
 
+
+/* Leaflet ズームコントロール：ヘッダーを避け、暗色UIに合わせる */
+.leaflet-top.leaflet-left{ top:106px; left:2px; }
+.leaflet-control-zoom{
+  border:1px solid rgba(255,255,255,.18) !important;
+  border-radius:12px !important;
+  overflow:hidden;
+  box-shadow:none !important;
+}
+.leaflet-control-zoom a{
+  background:rgba(0,10,30,.85) !important;
+  color:rgba(255,255,255,.75) !important;
+  border-bottom:1px solid rgba(255,255,255,.12) !important;
+  width:32px !important;height:32px !important;line-height:32px !important;
+  font-size:17px !important;
+}
+.leaflet-control-zoom a:last-child{ border-bottom:none !important; }
+.leaflet-control-zoom a:hover{ background:rgba(20,50,90,.9) !important; }
+.leaflet-bar{ background:transparent !important; }
 </style>
 </head>
 <body>
@@ -610,10 +630,10 @@ body{
 <button id="gaudio"><span id="gaudio-icon">🔊</span><span id="gaudio-label">音声ガイド</span></button>
 
 <div id="filters">
-  <button class="fb on" data-l="近景">近景 ～5km</button>
-  <button class="fb on" data-l="中景">中景 ～15km</button>
-  <button class="fb on" data-l="遠景">遠景 ～40km</button>
   <button class="fb on" data-l="超遠景">超遠景</button>
+  <button class="fb on" data-l="遠景">遠景 ～40km</button>
+  <button class="fb on" data-l="中景">中景 ～15km</button>
+  <button class="fb on" data-l="近景">近景 ～5km</button>
 </div>
 
 <div id="ar"></div>
@@ -632,7 +652,7 @@ body{
       <button class="cal-tab on" data-i="0">① 採石場</button>
       <button class="cal-tab" data-i="1">② 国際ふ頭</button>
       <button class="cal-tab" data-i="2">③ 火力発電所</button>
-      <button class="cal-tab" data-i="3">④ とれとれ</button>
+      <button class="cal-tab" data-i="3">④ 西舞鶴駅</button>
     </div>
     <div id="aim-actions">
       <button id="aim-cancel">キャンセル</button>
@@ -652,7 +672,7 @@ body{
       <button class="man-tab cal-tab on" data-i="0">① 採石場</button>
       <button class="man-tab cal-tab" data-i="1">② 国際ふ頭</button>
       <button class="man-tab cal-tab" data-i="2">③ 火力発電所</button>
-      <button class="man-tab cal-tab" data-i="3">④ とれとれ</button>
+      <button class="man-tab cal-tab" data-i="3">④ 西舞鶴駅</button>
     </div>
     <div id="man-row">
       <button class="man-btn man-b5" id="man-m5">−5</button>
@@ -808,7 +828,27 @@ var SPOTS = [{id:'p01', layer:'近景',cat:'旧軍港',dist:3.35,b:57.5, ja:'海
   {id:'p25', layer:'近景',cat:'港湾',dist:1.35,b:303.6,y:0.66,ja:'舞鶴国際ふ頭',             en:'Maizuru International Wharf', zh:'舞鹤国际码头',
    desc_ja:'5万トン級のコンテナ船が接岸できる多目的国際ターミナル。愛称「みずなぎ埠頭」。中国・韓国・ロシア航路が就航する日本海側のゲートウェイ。',
    desc_en:'A multipurpose international terminal handling 50,000-tonne container ships, nicknamed “Mizunagi Wharf.”',
-   desc_zh:'可停靠5万吨级集装箱船的多用途国际码头，昵称"水薙码头"。'}
+   desc_zh:'可停靠5万吨级集装箱船的多用途国际码头，昵称"水薙码头"。'},
+  {id:'p26', layer:'近景',cat:'城跡',dist:4.24,b:258.4,ja:'建部山城跡／建部山砲台跡',   en:'Tatebeyama Castle & Battery Ruins', zh:'建部山城迹／建部山炮台迹',
+   desc_ja:'丹後守護一色氏の山城跡に、明治期の舞鶴要塞の砲台が築かれた二重の遺構。中世と近代の防衛遺跡が同じ山頂に重なる。',
+   desc_en:'A medieval mountain castle of the Isshiki clan, later rebuilt as a Meiji-era coastal battery guarding Maizuru.',
+   desc_zh:'丹后守护一色氏的山城遗迹上，建有明治时期舞鹤要塞的炮台，中世与近代防御遗迹重叠于同一山顶。'},
+  {id:'p27', layer:'近景',cat:'城跡',dist:2.40,b:210.5,ja:'田辺城跡（田辺城資料館）',   en:'Tanabe Castle Ruins',              zh:'田边城迹（田边城资料馆）',
+   desc_ja:'細川幽斎が築いた舞鶴の礎となる城。関ヶ原の前哨戦「田辺城の戦い」で50日間の籠城に耐えた history を伝える。',
+   desc_en:'Built by Hosokawa Yusai, this castle withstood a 50-day siege on the eve of the Battle of Sekigahara.',
+   desc_zh:'细川幽斋所筑、成为舞鹤基础的城。以关原之战前哨战"田边城之战"中坚守50天而闻名。'},
+  {id:'p28', layer:'近景',cat:'都市',dist:2.81,b:205.0,ja:'西舞鶴駅',                 en:'Nishi-Maizuru Station',            zh:'西舞鹤站',
+   desc_ja:'JR舞鶴線と京都丹後鉄道が接続する西舞鶴の玄関口。天橋立方面への乗り換え拠点で、城下町エリアの中心にある。',
+   desc_en:'Gateway to western Maizuru where JR meets the Kyoto Tango Railway, the transfer point for Amanohashidate.',
+   desc_zh:'JR舞鹤线与京都丹后铁道交汇的西舞鹤门户，是前往天桥立的换乘据点。'},
+  {id:'p29', layer:'超遠景',cat:'都市',dist:86.94,b:170.4,ja:'大阪',                  en:'Osaka',                            zh:'大阪',
+   desc_ja:'約87km南。日本第二の都市。空気の澄んだ夜には、高層ビル群の灯りが地平の際にかすかに見えることがある。',
+   desc_en:'Japan\'s second city, 87km south. On exceptionally clear nights its skyline glow can reach the horizon.',
+   desc_zh:'约87公里南方。日本第二大城市，空气清澈的夜晚有时可见高层建筑群的灯光。'},
+  {id:'p30', layer:'超遠景',cat:'都市',dist:143.31,b:102.7,ja:'名古屋',               en:'Nagoya',                           zh:'名古屋',
+   desc_ja:'約143km東南東。中部圏の中心都市。直線上には伊吹山地が横たわり、実際の視認は極めて困難な方角の指標。',
+   desc_en:'143km east-southeast. The Ibuki mountains lie between, making this a direction marker rather than a sight.',
+   desc_zh:'约143公里东南东。中部地区中心城市。直线上横亘伊吹山地，实际难以目视。'}
 ];
 
 var DIRS_JA = ['北','北北東','北東','東北東','東','東南東','南東','南南東','南','南南西','南西','西南西','西','西北西','北西','北北西'];
@@ -1425,7 +1465,7 @@ var CALIB_TARGETS = [
   { name:'採石場',             bearing:100.0 },
   { name:'舞鶴国際ふ頭',       bearing:303.6 },
   { name:'舞鶴火力発電所',     bearing:354.0 },
-  { name:'舞鶴港とれとれセンター', bearing:235.0 }
+  { name:'西舞鶴駅',           bearing:205.0 }
 ];
 var calIdx = 0;   // 現在選んでいる校正基準
 
