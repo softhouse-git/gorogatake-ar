@@ -841,14 +841,14 @@ var SPOTS = [{id:'p01', layer:'近景',cat:'旧軍港',dist:3.35,b:57.5, ja:'海
    desc_ja:'JR舞鶴線と京都丹後鉄道が接続する西舞鶴の玄関口。天橋立方面への乗り換え拠点で、城下町エリアの中心にある。',
    desc_en:'Gateway to western Maizuru where JR meets the Kyoto Tango Railway, the transfer point for Amanohashidate.',
    desc_zh:'JR舞鹤线与京都丹后铁道交汇的西舞鹤门户，是前往天桥立的换乘据点。'},
-  {id:'p29', layer:'超遠景',cat:'都市',dist:86.94,b:170.4,ja:'大阪',                  en:'Osaka',                            zh:'大阪',
-   desc_ja:'約87km南。日本第二の都市。空気の澄んだ夜には、高層ビル群の灯りが地平の際にかすかに見えることがある。',
-   desc_en:'Japan\'s second city, 87km south. On exceptionally clear nights its skyline glow can reach the horizon.',
-   desc_zh:'约87公里南方。日本第二大城市，空气清澈的夜晚有时可见高层建筑群的灯光。'},
-  {id:'p30', layer:'超遠景',cat:'都市',dist:143.31,b:102.7,ja:'名古屋',               en:'Nagoya',                           zh:'名古屋',
-   desc_ja:'約143km東南東。中部圏の中心都市。直線上には伊吹山地が横たわり、実際の視認は極めて困難な方角の指標。',
-   desc_en:'143km east-southeast. The Ibuki mountains lie between, making this a direction marker rather than a sight.',
-   desc_zh:'约143公里东南东。中部地区中心城市。直线上横亘伊吹山地，实际难以目视。'}
+  {id:'p29', layer:'超遠景',cat:'都市',dist:86.94,b:170.4,wiki:'大坂城',ja:'大阪市',                en:'Osaka',                            zh:'大阪市',
+   desc_ja:'人口約275万人を擁する西日本最大の都市。豊臣秀吉が大坂城を築いて以来「天下の台所」と呼ばれた商都で、道頓堀や通天閣に代表される食文化と気風が今も息づく。',
+   desc_en:'Western Japan\'s largest city with 2.75 million people. A merchant capital since Hideyoshi built Osaka Castle, famed for its street food culture around Dotonbori.',
+   desc_zh:'拥有约275万人口的西日本最大城市。自丰臣秀吉筑大坂城以来被称为"天下厨房"的商都，道顿堀等地的饮食文化延续至今。'},
+  {id:'p30', layer:'超遠景',cat:'都市',dist:143.31,b:102.7,wiki:'名古屋城',ja:'名古屋市',             en:'Nagoya',                           zh:'名古屋市',
+   desc_ja:'尾張徳川家の城下町として栄えた中部圏最大の都市。金鯱で知られる名古屋城を中心に発展し、現在は自動車産業を軸とする日本の製造業の中枢を担う。',
+   desc_en:'The largest city in central Japan, grown from the castle town of the Owari Tokugawa clan. Home to Nagoya Castle and the heart of the nation\'s automotive industry.',
+   desc_zh:'作为尾张德川家城下町繁荣起来的中部地区最大城市。以金鯱闻名的名古屋城为中心发展，如今是日本汽车产业的中枢。'}
 ];
 
 var DIRS_JA = ['北','北北東','北東','東北東','東','東南東','南東','南南東','南','南南西','南西','西南西','西','西北西','北西','北北西'];
@@ -1208,7 +1208,8 @@ function openPanel(s) {
   document.getElementById('panel').classList.add('open');
   document.body.classList.add('panel-open');
   // Fetch Wikipedia image
-  fetchWikiImg(s.ja, function(url) {
+  // s.wiki があればそちらの記事から画像を取る（表示名と別の写真を使いたい場合）
+  fetchWikiImg(s.wiki || s.ja, function(url) {
     if (url) {
       pimg.onload = function() { pimg.style.display = 'block'; pload.textContent = ''; };
       pimg.onerror = function() { pload.textContent = ''; };
@@ -1221,7 +1222,7 @@ function openPanel(s) {
 
 function fetchWikiImg(name, cb) {
   var q = name.replace(/（[^）]*）/g, '').replace(/\s*[\(（].*?[\)）]\s*/g, '').trim();
-  var url = 'https://ja.wikipedia.org/w/api.php?action=query&titles=' + encodeURIComponent(q) + '&prop=pageimages&pithumbsize=600&format=json&origin=*';
+  var url = 'https://ja.wikipedia.org/w/api.php?action=query&redirects=1&titles=' + encodeURIComponent(q) + '&prop=pageimages&pithumbsize=600&format=json&origin=*';
   fetch(url).then(function(r) { return r.json(); }).then(function(d) {
     var pg = d.query && d.query.pages && Object.values(d.query.pages)[0];
     if (pg && pg.thumbnail) { cb(pg.thumbnail.source); }
