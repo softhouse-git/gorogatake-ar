@@ -345,10 +345,18 @@ body{
   content:'';position:absolute;top:50%;left:-14px;
   width:28px;height:1px;background:rgba(255,220,80,.9);
 }
+/* 指示テキストは画面中央下部に置き、上部のロケーション名を隠さない */
 #aim-top{
-  position:absolute;top:0;left:0;right:0;
-  padding:70px 20px 16px;text-align:center;
-  background:linear-gradient(180deg,rgba(0,10,30,.92),rgba(0,10,30,.75) 70%,transparent);
+  position:absolute;
+  left:50%;
+  bottom:250px;
+  transform:translateX(-50%);
+  width:max-content;max-width:92vw;
+  padding:11px 22px;
+  text-align:center;
+  background:rgba(0,10,30,.8);
+  border:1px solid rgba(255,220,80,.35);
+  border-radius:16px;
   pointer-events:none;
 }
 #aim-title{font-size:15px;font-weight:700;color:#ffdc50;margin-bottom:6px;letter-spacing:.04em;}
@@ -489,13 +497,20 @@ body{
 #manual{position:absolute;inset:0;z-index:60;display:none;pointer-events:none;}
 #manual.show{display:block;}
 #man-top{
-  position:absolute;top:0;left:0;right:0;
-  padding:56px 18px 14px;text-align:center;
-  background:linear-gradient(180deg,rgba(0,10,30,.94),rgba(0,10,30,.6) 78%,transparent);
-  pointer-events:auto;
+  position:absolute;
+  left:50%;
+  bottom:238px;
+  transform:translateX(-50%);
+  width:max-content;max-width:92vw;
+  padding:11px 22px;
+  text-align:center;
+  background:rgba(0,10,30,.8);
+  border:1px solid rgba(255,220,80,.35);
+  border-radius:16px;
+  pointer-events:none;
 }
 #man-step{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.1em;margin-bottom:5px;}
-#man-title{font-size:16px;font-weight:700;color:#ffdc50;margin-bottom:6px;}
+#man-title{font-size:14px;font-weight:700;color:#ffdc50;margin-bottom:5px;}
 #man-desc{font-size:11.5px;color:rgba(255,255,255,.7);line-height:1.65;}
 #man-bottom{
   position:absolute;bottom:0;left:0;right:0;
@@ -639,7 +654,7 @@ body{
 <div id="ar"></div>
 <div id="mapview"><div id="leafmap"></div></div>
 
-<button id="gyrobtn">📡 向き検知をONにする</button>
+<button id="gyrobtn">📡 方向補正を開始</button>
 <div id="aim">
   <div id="aim-cross"></div>
   <div id="aim-top">
@@ -1692,7 +1707,7 @@ var UI = {
     layers:['近景 ～5km','中景 ～15km','遠景 ～40km','超遠景'],
     layerShort:{近景:'近景',中景:'中景',遠景:'遠景',超遠景:'超遠景'},
     arView:'ARビュー', mapView:'地図ビュー',
-    gyro:'向き検知をONにする',
+    gyro:'方向補正を開始',
     calTitle:'方位調整', calOpen:'方位調整',
     calLabel:'方位補正（左右のズレ）',
     calBasic:'方位調整を始める',
@@ -1705,7 +1720,7 @@ var UI = {
     layers:['Near ≤5km','Mid ≤15km','Far ≤40km','Ultra Far'],
     layerShort:{近景:'Near',中景:'Mid',遠景:'Far',超遠景:'Ultra Far'},
     arView:'AR View', mapView:'Map',
-    gyro:'Enable Compass',
+    gyro:'Start Calibration',
     calTitle:'Bearing', calOpen:'Bearing',
     calLabel:'Bearing offset',
     calBasic:'Align to reference (100°)',
@@ -1718,7 +1733,7 @@ var UI = {
     layers:['近景 ≤5km','中景 ≤15km','远景 ≤40km','超远景'],
     layerShort:{近景:'近景',中景:'中景',遠景:'远景',超遠景:'超远景'},
     arView:'AR视图', mapView:'地图',
-    gyro:'启用方位检测',
+    gyro:'开始方位校正',
     calTitle:'方位校准', calOpen:'方位校准',
     calLabel:'方位补正（左右偏差）',
     calBasic:'对准校准基准（100°）',
