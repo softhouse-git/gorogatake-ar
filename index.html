@@ -349,18 +349,21 @@ body{
 #aim-top{
   position:absolute;
   left:50%;
-  bottom:250px;
+  bottom:236px;
   transform:translateX(-50%);
   width:max-content;max-width:92vw;
-  padding:11px 22px;
+  padding:14px 20px 15px;
   text-align:center;
-  background:rgba(0,10,30,.8);
-  border:1px solid rgba(255,220,80,.35);
+  background:rgba(255,255,255,.42);
+  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.5);
   border-radius:16px;
-  pointer-events:none;
+  box-shadow:0 4px 18px rgba(0,0,0,.25);
+  pointer-events:auto;
 }
-#aim-title{font-size:15px;font-weight:700;color:#ffdc50;margin-bottom:6px;letter-spacing:.04em;}
-#aim-desc{font-size:12px;color:rgba(255,255,255,.65);line-height:1.6;}
+#aim-title{font-size:14px;font-weight:800;color:#FFD400;margin-bottom:7px;letter-spacing:.05em;text-shadow:0 0 3px rgba(10,25,40,.95),0 1px 2px rgba(10,25,40,.9),0 0 8px rgba(10,25,40,.7);}
+#aim-desc{font-size:12px;color:#16283A;line-height:1.7;font-weight:500;text-shadow:0 1px 3px rgba(255,255,255,.85);}
 #aim-bottom{
   position:absolute;bottom:0;left:0;right:0;
   padding:16px 12px 24px;
@@ -475,6 +478,7 @@ body{
   padding:5px 12px;border-radius:18px;font-size:12px;font-weight:700;
   background:rgba(0,0,0,.82);border:1px solid #ffdc50;color:#ffdc50;
 }
+#aim-hint:empty{display:none;}
 #aim-hint{
   font-size:11.5px;color:rgba(255,255,255,.6);text-align:center;
   line-height:1.6;margin-bottom:12px;padding:0 6px;
@@ -589,6 +593,20 @@ body{
 .leaflet-control-zoom a:last-child{ border-bottom:none !important; }
 .leaflet-control-zoom a:hover{ background:rgba(20,50,90,.9) !important; }
 .leaflet-bar{ background:transparent !important; }
+
+/* 中央ボックス内の決定ボタン */
+#aim-ok{
+  display:block;width:100%;
+  margin-top:12px;padding:12px 0;
+  border-radius:22px;border:none;
+  background:#F2B705;color:#1A1200;
+  font-size:14px;font-weight:700;font-family:inherit;
+  -webkit-appearance:none;cursor:pointer;
+  letter-spacing:.04em;
+}
+#aim-ok:active{ background:#D9A404; }
+/* 目標名の強調（薄い白地に合わせた濃い色） */
+#aim-desc b{ color:#FFD400; font-weight:800;text-shadow:0 0 3px rgba(10,25,40,.95),0 1px 2px rgba(10,25,40,.9),0 0 8px rgba(10,25,40,.7); }
 </style>
 </head>
 <body>
@@ -658,8 +676,9 @@ body{
 <div id="aim">
   <div id="aim-cross"></div>
   <div id="aim-top">
-    <div id="aim-title">方位の校正</div>
+    <div id="aim-title">【方位調整方法】</div>
     <div id="aim-desc"></div>
+    <button id="aim-ok">この位置で決定</button>
   </div>
   <div id="aim-bottom">
     <div id="aim-hint"></div>
@@ -671,7 +690,6 @@ body{
     </div>
     <div id="aim-actions">
       <button id="aim-cancel">キャンセル</button>
-      <button id="aim-ok">この位置で決定</button>
     </div>
   </div>
 </div>
@@ -1561,11 +1579,19 @@ function setCalTarget(i) {
 
 function updateCalTargetUI() {
   var ct = CALIB_TARGETS[calIdx];
-  document.getElementById('aim-title').textContent = '方位調整';
-  document.getElementById('aim-desc').innerHTML =
-    '正面の<b style="color:#ffdc50">' + ct.name + '</b>に<br>黄色い縦線を重ねてください';
-  document.getElementById('aim-hint').innerHTML =
-    '黄色いピンが実際の' + ct.name + 'に重なれば完了です。<br>基準方位 ' + ct.bearing + '°';
+  var nm = '<b>『' + ct.name + '』</b>';
+
+  var head = { ja:'【方位調整方法】', en:'[ How to calibrate ]', zh:'【方位校正方法】' };
+  var body = {
+    ja: '画面内の' + nm + 'の場所に<br>黄色の縦線を合わせて決定して下さい。',
+    en: 'Align the yellow line with ' + nm + '<br>on screen, then confirm.',
+    zh: '请将黄色竖线对准画面中的' + nm + '<br>然后按下确定。'
+  };
+
+  document.getElementById('aim-title').innerHTML = head[lang] || head.ja;
+  document.getElementById('aim-desc').innerHTML  = body[lang] || body.ja;
+  document.getElementById('aim-hint').innerHTML  = '';
+
   var tabs = document.querySelectorAll('.cal-tab');
   for (var i = 0; i < tabs.length; i++) {
     tabs[i].classList.toggle('on', parseInt(tabs[i].dataset.i, 10) === calIdx);
