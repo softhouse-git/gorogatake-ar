@@ -879,7 +879,7 @@ body{
       <img id="gz-filter-title" src="" alt="GODZILLA" style="width:88px;object-fit:contain;pointer-events:none;">
     </div>
     <!-- スポットバッジ（左上・ゴジラ顔と重ならない位置） -->
-    <div id="gz-filter-badge" style="position:absolute;top:5%;left:4%;max-width:40%;background:rgba(10,0,0,.65);border:1px solid rgba(200,40,0,.45);border-radius:8px;padding:5px 10px 6px;pointer-events:none;line-height:1.4;display:none;">
+    <div id="gz-filter-badge" style="position:absolute;top:5%;left:3%;max-width:38%;background:rgba(10,0,0,.65);border:1px solid rgba(200,40,0,.45);border-radius:8px;padding:5px 10px 6px;pointer-events:none;line-height:1.4;display:none;">
       <div style="font-size:10px;color:rgba(255,110,70,.9);font-weight:600;letter-spacing:.04em;">🎬 ロケ地</div>
       <div id="gz-filter-spot" style="font-size:13px;color:#fff;font-weight:700;letter-spacing:.02em;text-shadow:0 1px 4px rgba(0,0,0,.8);word-break:break-all;line-height:1.35;"></div>
     </div>
@@ -1575,18 +1575,35 @@ function takeGodzillaPhoto() {
   }
 
   // ⑤ スポットバッジ（左上）
-  var bx = W*0.04, by = H*0.05, bw = W*0.52, bh = H*0.072;
+  var bPad = 8;
+  var bFontSm = Math.round(W*0.022);
+  var bFontLg = Math.round(W*0.030);
+  ctx.font = '700 ' + bFontLg + 'px sans-serif';
+  var nameW = ctx.measureText(gzCurrentSpotName).width;
+  ctx.font = bFontSm + 'px sans-serif';
+  var tagW = ctx.measureText('🎬 ロケ地').width;
+  var bw = Math.min(Math.max(nameW, tagW) + bPad*2, W*0.39);
+  var bh = H*0.072;
+  var bx = W*0.03, by = H*0.05;
   ctx.fillStyle = 'rgba(10,0,0,.65)';
   ctx.strokeStyle = 'rgba(200,40,0,.45)';
   ctx.lineWidth = 1;
   roundRect(ctx, bx, by, bw, bh, 8);
   ctx.fill(); ctx.stroke();
-  ctx.font = Math.round(W*0.022) + 'px sans-serif';
+  ctx.font = bFontSm + 'px sans-serif';
   ctx.fillStyle = 'rgba(255,110,70,.7)';
-  ctx.fillText('🎬 ロケ地', bx+8, by + bh*0.42);
-  ctx.font = '700 ' + Math.round(W*0.032) + 'px sans-serif';
+  ctx.fillText('🎬 ロケ地', bx+bPad, by + bh*0.42);
+  ctx.font = '700 ' + bFontLg + 'px sans-serif';
   ctx.fillStyle = '#fff';
-  ctx.fillText(gzCurrentSpotName, bx+8, by + bh*0.82);
+  // テキストが幅を超える場合は縮小
+  var maxTw = bw - bPad*2;
+  if (ctx.measureText(gzCurrentSpotName).width > maxTw) {
+    for (var fs2=bFontLg; fs2>=Math.round(W*0.020); fs2--) {
+      ctx.font = '700 ' + fs2 + 'px sans-serif';
+      if (ctx.measureText(gzCurrentSpotName).width <= maxTw) break;
+    }
+  }
+  ctx.fillText(gzCurrentSpotName, bx+bPad, by + bh*0.82);
 
   // ⑥ 丸スタンプ（右下・大きく・ポップ）
   var sr = Math.round(W * 0.145); // 半径（少し大きく）
