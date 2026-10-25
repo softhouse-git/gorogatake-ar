@@ -352,7 +352,7 @@ body{
 #godzilla-overlay{
   position:fixed;inset:0;z-index:90000;
   background:#000;
-  display:none;flex-direction:column;align-items:center;justify-content:center;
+  display:none;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:10%;
   transition:opacity .5s ease;
 }
 #godzilla-overlay::before{
@@ -870,7 +870,7 @@ body{
   <video id="gz-video" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video>
   <div id="gz-video-fallback" style="display:none;position:absolute;inset:0;background:#111;"></div>
   <div id="gz-ar-filter" style="position:absolute;inset:0;pointer-events:none;">
-    <img id="gz-filter-kao" src="" alt="" style="position:absolute;top:0;right:0;width:82.5%;object-fit:contain;opacity:0.92;pointer-events:none;">
+    <img id="gz-filter-kao" src="" alt="" style="position:absolute;top:0;right:0;width:78.4%;object-fit:contain;opacity:0.92;pointer-events:none;">
     <img id="gz-filter-shipo" src="" alt="" style="position:absolute;bottom:0;left:0;width:60%;object-fit:contain;opacity:0.9;pointer-events:none;">
     <!-- スタンプ＋ロゴ ラッパー（右下・縦並び） -->
     <div id="gz-stamp-group" style="position:absolute;bottom:14%;right:4%;display:flex;flex-direction:column;align-items:center;gap:6px;">
@@ -1561,7 +1561,7 @@ function takeGodzillaPhoto() {
   // ② ゴジラ顔（右上・1.5倍）
   var kaoEl = document.getElementById('gz-filter-kao');
   if (kaoEl && kaoEl.naturalWidth > 0) {
-    var kw = W * 0.72; // 0.48 × 1.5
+    var kw = W * 0.684; // 0.72 × 0.95
     var kh = kaoEl.naturalHeight * (kw / kaoEl.naturalWidth);
     ctx.drawImage(kaoEl, W - kw, 0, kw, kh);
   }
