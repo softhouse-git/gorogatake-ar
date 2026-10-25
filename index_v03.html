@@ -1540,20 +1540,38 @@ function takeGodzillaPhoto() {
   var canvas = document.getElementById('gz-canvas');
   var flash = document.getElementById('gz-flash');
   var vid = document.getElementById('gz-video');
+  var screenEl = document.getElementById('gz-photo-screen');
 
-  // フラッシュ演出
-  flash.style.opacity = '1';
-  setTimeout(function(){ flash.style.opacity = '0'; }, 120);
-
-  var W = window.innerWidth;
-  var H = window.innerHeight;
-  canvas.width = W;
-  canvas.height = H;
+  // ── 画面サイズ＋高解像度（Retina対応） ──
+  var sRect = screenEl.getBoundingClientRect();
+  var W = sRect.width, H = sRect.height;
+  var dpr = Math.min(window.devicePixelRatio || 1, 3);
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
   var ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  // ① カメラ映像を描画（背景）
-  if (vid.srcObject && vid.readyState >= 2) {
-    ctx.drawImage(vid, 0, 0, W, H);
+  // 画面上の要素の位置（撮影画面基準）を取得
+  function rectOf(el) {
+    var r = el.getBoundingClientRect();
+    return {x: r.left - sRect.left, y: r.top - sRect.top, w: r.width, h: r.height};
+  }
+  function isShown(el) {
+    if (!el) return false;
+    var r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  }
+
+  // ① カメラ映像：object-fit:cover と同じ切り抜き＋前面カメラは鏡像
+  if (vid.srcObject && vid.readyState >= 2 && vid.videoWidth > 0) {
+    var vw = vid.videoWidth, vh = vid.videoHeight;
+    var sc = Math.max(W / vw, H / vh);
+    var cw = W / sc, ch = H / sc;
+    var cx = (vw - cw) / 2, cy = (vh - ch) / 2;
+    ctx.save();
+    if (gzFacing === 'user') { ctx.translate(W, 0); ctx.scale(-1, 1); }
+    ctx.drawImage(vid, cx, cy, cw, ch, 0, 0, W, H);
+    ctx.restore();
   } else {
     var bg = ctx.createLinearGradient(0, 0, 0, H);
     bg.addColorStop(0, '#0a1520');
@@ -1562,121 +1580,116 @@ function takeGodzillaPhoto() {
     ctx.fillRect(0, 0, W, H);
   }
 
-  // ② ゴジラ顔（右上・1.5倍）
-  var kaoEl = document.getElementById('gz-filter-kao');
-  if (kaoEl && kaoEl.naturalWidth > 0) {
-    var kw = W * 0.684; // 0.72 × 0.95
-    var kh = kaoEl.naturalHeight * (kw / kaoEl.naturalWidth);
-    ctx.drawImage(kaoEl, W - kw, 0, kw, kh);
+  // 画像要素をライブ画面と同じ位置・サイズで描画
+  function drawImgEl(el) {
+    if (!el || !el.complete || el.naturalWidth === 0 || !isShown(el)) return;
+    var r = rectOf(el);
+    var op = parseFloat(getComputedStyle(el).opacity);
+    ctx.save();
+    ctx.globalAlpha = isNaN(op) ? 1 : op;
+    ctx.drawImage(el, r.x, r.y, r.w, r.h);
+    ctx.restore();
   }
 
-  // ③ ゴジラ尻尾（左下）
-  var shipoEl = document.getElementById('gz-filter-shipo');
-  if (shipoEl && shipoEl.naturalWidth > 0) {
-    var sw = W * 0.55;
-    var sh = shipoEl.naturalHeight * (sw / shipoEl.naturalWidth);
-    ctx.drawImage(shipoEl, 0, H - sh, sw, sh);
+  // テキストを折り返して行に分ける
+  function wrapLines(text, maxW) {
+    var out = [];
+    String(text).split('\n').forEach(function(para) {
+      var line = '';
+      for (var i = 0; i < para.length; i++) {
+        var test = line + para[i];
+        if (line && ctx.measureText(test).width > maxW + 2) { out.push(line); line = para[i]; }
+        else line = test;
+      }
+      out.push(line);
+    });
+    return out;
   }
 
-  // ⑤ スポットバッジ（左上）
-  var bPad = 8;
-  var bFontSm = Math.round(W*0.022);
-  var bFontLg = Math.round(W*0.030);
-  ctx.font = '700 ' + bFontLg + 'px sans-serif';
-  var nameW = ctx.measureText(gzCurrentSpotName).width;
-  ctx.font = bFontSm + 'px sans-serif';
-  var tagW = ctx.measureText('🎬 ロケ地').width;
-  var bw = Math.min(Math.max(nameW, tagW) + bPad*2, W*0.39);
-  var bh = H*0.072;
-  var bx = W*0.03, by = H*0.05;
-  ctx.fillStyle = 'rgba(10,0,0,.65)';
-  ctx.strokeStyle = 'rgba(200,40,0,.45)';
-  ctx.lineWidth = 1;
-  roundRect(ctx, bx, by, bw, bh, 8);
-  ctx.fill(); ctx.stroke();
-  ctx.font = bFontSm + 'px sans-serif';
-  ctx.fillStyle = 'rgba(255,110,70,.7)';
-  ctx.fillText('🎬 ロケ地', bx+bPad, by + bh*0.42);
-  ctx.font = '700 ' + bFontLg + 'px sans-serif';
-  ctx.fillStyle = '#fff';
-  // テキストが幅を超える場合は縮小
-  var maxTw = bw - bPad*2;
-  if (ctx.measureText(gzCurrentSpotName).width > maxTw) {
-    for (var fs2=bFontLg; fs2>=Math.round(W*0.020); fs2--) {
-      ctx.font = '700 ' + fs2 + 'px sans-serif';
-      if (ctx.measureText(gzCurrentSpotName).width <= maxTw) break;
+  // テキスト要素をライブ画面と同じフォント・位置で描画
+  function drawTextEl(el, opts) {
+    if (!el || !isShown(el)) return;
+    opts = opts || {};
+    var cs = getComputedStyle(el);
+    var r = rectOf(el);
+    var fs = parseFloat(cs.fontSize);
+    var lh = parseFloat(cs.lineHeight); if (isNaN(lh)) lh = fs * 1.35;
+    var padL = parseFloat(cs.paddingLeft) + parseFloat(cs.borderLeftWidth);
+    var padR = parseFloat(cs.paddingRight) + parseFloat(cs.borderRightWidth);
+    var innerW = r.w - padL - padR;
+    ctx.save();
+    ctx.font = cs.fontWeight + ' ' + fs + 'px ' + cs.fontFamily;
+    try { if ('letterSpacing' in ctx && cs.letterSpacing !== 'normal') ctx.letterSpacing = cs.letterSpacing; } catch(e) {}
+    ctx.fillStyle = cs.color;
+    ctx.textBaseline = 'middle';
+    if (opts.shadow) {
+      ctx.shadowColor = opts.shadow.color; ctx.shadowBlur = opts.shadow.blur; ctx.shadowOffsetY = opts.shadow.y || 0;
     }
-  }
-  ctx.fillText(gzCurrentSpotName, bx+bPad, by + bh*0.82);
-
-  // ⑥ 丸スタンプ（右下・大きく・ポップ）
-  var sr = Math.round(W * 0.145); // 半径（少し大きく）
-  var scx = W - sr - W*0.04;
-  var scy = H - sr - H*0.14;     // 上にずらしてロゴ分のスペース確保
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(scx, scy, sr, 0, Math.PI*2);
-  // ポップな放射グラデーション
-  var stampGrad = ctx.createRadialGradient(scx - sr*0.2, scy - sr*0.2, sr*0.05, scx, scy, sr);
-  stampGrad.addColorStop(0, 'rgba(255,70,30,.97)');
-  stampGrad.addColorStop(1, 'rgba(170,5,0,.93)');
-  ctx.fillStyle = stampGrad;
-  ctx.fill();
-  // 白枠（外側）
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = Math.round(W * 0.008);
-  ctx.stroke();
-  // 内側細線
-  ctx.beginPath();
-  ctx.arc(scx, scy, sr - Math.round(W*0.012), 0, Math.PI*2);
-  ctx.strokeStyle = 'rgba(255,200,180,.5)';
-  ctx.lineWidth = Math.round(W * 0.003);
-  ctx.stroke();
-  ctx.clip();
-  // テキストをスタンプ内に収める（自動縮小）
-  var stampLines = ['ゴジラ -0.0','舞鶴ロケ記念','五老スカイタワー','来訪記念'];
-  var maxFontSize = Math.round(sr * 0.32);
-  var minFontSize = Math.round(sr * 0.18);
-  var fontSize = maxFontSize;
-  ctx.textAlign = 'center';
-  // テキスト影
-  ctx.shadowColor = 'rgba(0,0,0,.5)';
-  ctx.shadowBlur = 3;
-  ctx.fillStyle = '#fff';
-  for (var fs = maxFontSize; fs >= minFontSize; fs--) {
-    ctx.font = '900 ' + fs + 'px sans-serif';
-    var maxW = 0;
-    for (var li=0; li<stampLines.length; li++) {
-      maxW = Math.max(maxW, ctx.measureText(stampLines[li]).width);
-    }
-    if (maxW <= sr * 1.55) { fontSize = fs; break; }
-  }
-  ctx.font = '900 ' + fontSize + 'px sans-serif';
-  var slh = fontSize * 1.35;
-  var startY = scy - slh * (stampLines.length-1)/2 + fontSize*0.35;
-  for (var li=0; li<stampLines.length; li++) {
-    ctx.fillText(stampLines[li], scx, startY + li*slh);
-  }
-  ctx.shadowBlur = 0;
-  ctx.textAlign = 'left';
-  ctx.restore();
-
-  // ④ GODZILLAタイトルロゴ（スタンプの下）
-  var titleEl = document.getElementById('gz-filter-title');
-  if (titleEl && titleEl.naturalWidth > 0) {
-    var tw = W * 0.22;
-    var th = titleEl.naturalHeight * (tw / titleEl.naturalWidth);
-    var tx = W - tw - W*0.04;
-    var ty = scy + sr + H*0.01; // スタンプ下端のさらに下
-    ctx.drawImage(titleEl, tx, ty, tw, th);
+    var txt = opts.text != null ? opts.text : el.innerText;
+    var lines = (cs.whiteSpace === 'nowrap') ? String(txt).split('\n') : wrapLines(txt, innerW);
+    var total = lines.length * lh;
+    var y0 = opts.vcenter ? (r.y + r.h / 2 - total / 2 + lh / 2) : (r.y + parseFloat(cs.paddingTop) + lh / 2);
+    ctx.textAlign = opts.center ? 'center' : 'left';
+    var x = opts.center ? (r.x + padL + innerW / 2) : (r.x + padL);
+    for (var i = 0; i < lines.length; i++) ctx.fillText(lines[i], x, y0 + i * lh);
+    ctx.restore();
   }
 
-  // ⑦ 著作権（下部中央・やや大きく）
-  ctx.font = Math.round(W*0.022) + 'px sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,.65)';
-  ctx.textAlign = 'center';
-  ctx.fillText('[TM & © TOHO]', W/2, H - H*0.02);
-  ctx.textAlign = 'left';
+  // ② ゴジラ顔（右上）　③ ゴジラ尻尾（左下）
+  drawImgEl(document.getElementById('gz-filter-kao'));
+  drawImgEl(document.getElementById('gz-filter-shipo'));
+
+  // ④ スポットバッジ（左上）
+  var badge = document.getElementById('gz-filter-badge');
+  if (isShown(badge)) {
+    var br = rectOf(badge), bcs = getComputedStyle(badge);
+    ctx.save();
+    roundRect(ctx, br.x, br.y, br.w, br.h, parseFloat(bcs.borderTopLeftRadius) || 8);
+    ctx.fillStyle = bcs.backgroundColor;
+    ctx.fill();
+    ctx.lineWidth = parseFloat(bcs.borderTopWidth) || 1;
+    ctx.strokeStyle = bcs.borderTopColor;
+    ctx.stroke();
+    ctx.restore();
+    drawTextEl(badge.children[0]);
+    drawTextEl(document.getElementById('gz-filter-spot'), {shadow:{color:'rgba(0,0,0,.8)', blur:4, y:1}});
+  }
+
+  // ⑤ 丸スタンプ（右下）
+  var stampEl = document.querySelector('#gz-ar-filter .gz-stamp');
+  if (isShown(stampEl)) {
+    var sr = rectOf(stampEl);
+    var scx = sr.x + sr.w / 2, scy = sr.y + sr.h / 2, rad = sr.w / 2;
+    var bw = parseFloat(getComputedStyle(stampEl).borderTopWidth) || 4;
+    ctx.save();
+    // 外側の赤いグロー（box-shadow相当）
+    ctx.shadowColor = 'rgba(200,0,0,.7)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 4;
+    ctx.beginPath(); ctx.arc(scx, scy, rad, 0, Math.PI * 2);
+    var g = ctx.createRadialGradient(sr.x + sr.w * 0.38, sr.y + sr.h * 0.38, 0, scx, scy, rad);
+    g.addColorStop(0, 'rgba(255,60,30,.95)');
+    g.addColorStop(1, 'rgba(180,10,0,.9)');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    // オレンジの細リング＋白枠
+    ctx.beginPath(); ctx.arc(scx, scy, rad + 1, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,100,50,.6)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(scx, scy, rad - bw / 2, 0, Math.PI * 2);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = bw; ctx.stroke();
+    ctx.restore();
+    drawTextEl(stampEl, {center:true, vcenter:true, shadow:{color:'rgba(0,0,0,.6)', blur:3, y:1}});
+  }
+
+  // ⑥ GODZILLAロゴ（スタンプの下）
+  drawImgEl(document.getElementById('gz-filter-title'));
+
+  // ⑦ 著作権（下部中央）
+  drawTextEl(document.getElementById('gz-copyright'), {center:true});
+
+  gzCaptured = true;
+
+  // フラッシュ演出
+  flash.style.opacity = '1';
+  setTimeout(function(){ flash.style.opacity = '0'; }, 120);
 
   // 完成 → プレビュー表示
   canvas.style.display = 'block';
@@ -1691,7 +1704,6 @@ function takeGodzillaPhoto() {
   // 保存ボタンを表示
   var saveDiv = document.getElementById('gz-save-msg');
   if (saveDiv) saveDiv.style.display = 'none';
-  // 保存UIを下部に追加表示
   showGzSaveUI();
 }
 
