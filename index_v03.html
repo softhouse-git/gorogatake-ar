@@ -167,7 +167,7 @@ body{
 .gz-pin .gz-dot-logo{
   position:absolute;
   /* pdotと同じ 64px 円の中心に合わせる */
-  width:56px;height:56px;
+  width:73px;height:73px; /* 56px × 1.3 */
   object-fit:contain;
   /* pdotの blur/opacity と調和するよう透明感を持たせる */
   opacity:0.85;
@@ -357,12 +357,15 @@ body{
 }
 #godzilla-overlay::before{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.72) 55%,rgba(0,0,0,.88) 100%);
+  /* 暗幕なし：文字の可読性のため画面下端だけ薄いグラデーション */
+  background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 55%,rgba(0,0,0,.35) 100%);
   z-index:0;
 }
 #godzilla-overlay > *:not(#gz-title-logo){position:relative;z-index:1;}
 #gz-title-logo{z-index:10;}
-#godzilla-overlay.show{display:flex;opacity:1;}
+#godzilla-overlay.show{display:flex;opacity:1;animation:gzPan 24s ease-in-out infinite alternate;}
+/* 横長のVFX画像を画面の高さに合わせ、左端⇔右端をゆっくり往復 */
+@keyframes gzPan{0%{background-position:0% center;}100%{background-position:100% center;}}
 #godzilla-overlay.hide{opacity:0;}
 .gz-roar{
   font-size:60px;font-weight:900;color:#cc2200;
@@ -386,23 +389,24 @@ body{
 }
 @keyframes gzBreath{0%{width:60px;opacity:.8;}100%{width:180px;opacity:1;}}
 .gz-location-info{
-  background:rgba(30,0,0,.50);border:1px solid rgba(255,60,0,.35);
-  border-radius:18px;padding:20px 24px;max-width:340px;width:88%;
+  /* 座布団なし（完全シースルー） */
+  background:none;border:none;box-shadow:none;
+  border-radius:0;padding:20px 24px;max-width:340px;width:88%;
   text-align:center;
-  box-shadow:0 0 40px rgba(150,0,0,.4),inset 0 0 20px rgba(80,0,0,.3);
-  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
 }
 .gz-location-label{
-  font-size:14px;letter-spacing:.15em;color:rgba(255,100,60,.85);
+  font-size:14px;letter-spacing:.15em;color:#fff;
   margin-bottom:8px;font-weight:700;
+  text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 1px rgba(0,0,0,.9);
 }
 .gz-location-name{
   font-size:19px;font-weight:700;color:#fff;
-  text-shadow:0 0 20px rgba(255,60,0,.5);
+  text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 1px rgba(0,0,0,.9);
   margin-bottom:10px;line-height:1.4;
 }
 .gz-location-desc{
-  font-size:13px;color:rgba(255,200,180,.8);line-height:1.8;
+  font-size:13px;color:#fff;line-height:1.8;
+  text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 1px rgba(0,0,0,.9);
   margin-bottom:18px;
 }
 .gz-yt-btn{
@@ -416,9 +420,10 @@ body{
   -webkit-tap-highlight-color:transparent;
 }
 .gz-close-btn{
-  display:block;margin-top:4px;
+  display:block;margin:4px auto 0;
   background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
-  border-radius:20px;padding:9px 24px;color:rgba(255,255,255,.5);
+  border-radius:20px;padding:9px 24px;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 1px rgba(0,0,0,.9);
   font-size:12px;cursor:pointer;-webkit-appearance:none;
   -webkit-tap-highlight-color:transparent;
 }
@@ -878,7 +883,7 @@ body{
     <img id="gz-filter-shipo" src="" alt="" style="position:absolute;bottom:0;left:0;width:60%;object-fit:contain;opacity:0.9;pointer-events:none;">
     <!-- スタンプ＋ロゴ ラッパー（右下・縦並び） -->
     <div id="gz-stamp-group" style="position:absolute;bottom:14%;right:4%;display:flex;flex-direction:column;align-items:center;gap:6px;">
-      <div class="gz-stamp" style="width:96px;height:96px;border-radius:50%;border:4px solid #fff;background:radial-gradient(circle at 38% 38%,rgba(255,60,30,.95),rgba(180,10,0,.9));box-shadow:0 0 0 2px rgba(255,100,50,.6),0 4px 18px rgba(200,0,0,.7);display:flex;align-items:center;justify-content:center;text-align:center;font-size:8.5px;color:#fff;font-weight:900;letter-spacing:.03em;line-height:1.5;padding:12px;word-break:keep-all;overflow-wrap:anywhere;text-shadow:0 1px 3px rgba(0,0,0,.6);">ゴジラ -0.0<br>舞鶴ロケ記念<br>五老スカイ<br>タワー来訪記念</div>
+      <img id="gz-filter-stamp" class="gz-stamp" src="" alt="ゴジラ-0.0 舞鶴ロケ記念企画" style="width:96px;height:96px;object-fit:contain;pointer-events:none;">
       <!-- GODZILLAロゴ（スタンプの直下） -->
       <img id="gz-filter-title" src="" alt="GODZILLA" style="width:88px;object-fit:contain;pointer-events:none;">
     </div>
@@ -1231,8 +1236,8 @@ function renderAR() {
       gzLogo.src = GZ_LOGO_SRC;
       gzLogo.className = 'gz-dot-logo';
       // pdotと同じ中心座標に配置（ax-28, ay-28 で 56px画像を中央揃え）
-      gzLogo.style.left = Math.round(item.ax) - 28 + 'px';
-      gzLogo.style.top  = Math.round(item.ay) - 28 + 'px';
+      gzLogo.style.left = Math.round(item.ax) - 36 + 'px';
+      gzLogo.style.top  = Math.round(item.ay) - 36 + 'px';
       pin.appendChild(gzLogo);
     }
 
@@ -1404,6 +1409,7 @@ var GZ_BG_SRC     = 'images/gz_bg.jpg';
 var GZ_KAO_SRC    = 'images/gz_kao.png';
 var GZ_SHIPO_SRC  = 'images/gz_shipo.png';
 var GZ_TITLE_SRC  = 'images/gz_title.png';
+var GZ_STAMP_SRC  = 'images/gz_stamp.png';
 var gzPhotoStream = null;
 var gzCurrentSpotName = '海上自衛隊舞鶴教育隊';
 var gzCaptured = false;
@@ -1505,6 +1511,8 @@ function openGodzillaPhoto() {
   if (shipoImg) shipoImg.src = GZ_SHIPO_SRC;
   var titleImg = document.getElementById('gz-filter-title');
   if (titleImg) titleImg.src = GZ_TITLE_SRC;
+  var stampImg = document.getElementById('gz-filter-stamp');
+  if (stampImg) stampImg.src = GZ_STAMP_SRC;
 
   // キャンバスを隠してARフィルタービューに戻す
   var canvas = document.getElementById('gz-canvas');
@@ -1655,29 +1663,8 @@ function takeGodzillaPhoto() {
     drawTextEl(document.getElementById('gz-filter-spot'), {shadow:{color:'rgba(0,0,0,.8)', blur:4, y:1}});
   }
 
-  // ⑤ 丸スタンプ（右下）
-  var stampEl = document.querySelector('#gz-ar-filter .gz-stamp');
-  if (isShown(stampEl)) {
-    var sr = rectOf(stampEl);
-    var scx = sr.x + sr.w / 2, scy = sr.y + sr.h / 2, rad = sr.w / 2;
-    var bw = parseFloat(getComputedStyle(stampEl).borderTopWidth) || 4;
-    ctx.save();
-    // 外側の赤いグロー（box-shadow相当）
-    ctx.shadowColor = 'rgba(200,0,0,.7)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 4;
-    ctx.beginPath(); ctx.arc(scx, scy, rad, 0, Math.PI * 2);
-    var g = ctx.createRadialGradient(sr.x + sr.w * 0.38, sr.y + sr.h * 0.38, 0, scx, scy, rad);
-    g.addColorStop(0, 'rgba(255,60,30,.95)');
-    g.addColorStop(1, 'rgba(180,10,0,.9)');
-    ctx.fillStyle = g; ctx.fill();
-    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-    // オレンジの細リング＋白枠
-    ctx.beginPath(); ctx.arc(scx, scy, rad + 1, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,100,50,.6)'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.beginPath(); ctx.arc(scx, scy, rad - bw / 2, 0, Math.PI * 2);
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = bw; ctx.stroke();
-    ctx.restore();
-    drawTextEl(stampEl, {center:true, vcenter:true, shadow:{color:'rgba(0,0,0,.6)', blur:3, y:1}});
-  }
+  // ⑤ 丸スタンプ（右下・画像）
+  drawImgEl(document.getElementById('gz-filter-stamp'));
 
   // ⑥ GODZILLAロゴ（スタンプの下）
   drawImgEl(document.getElementById('gz-filter-title'));
@@ -1758,8 +1745,8 @@ function openGodzillaOverlay(s) {
   var ov = document.getElementById('godzilla-overlay');
   // 背景画像をGodzilla背景.jpgに設定
   ov.style.backgroundImage = 'url(' + GZ_BG_SRC + ')';
-  ov.style.backgroundSize = 'cover';
-  ov.style.backgroundPosition = 'center center';
+  ov.style.backgroundSize = 'auto 100%';
+  ov.style.backgroundRepeat = 'no-repeat';
   // タイトルロゴ画像セット
   var titleLogo = document.getElementById('gz-title-logo');
   if (titleLogo) titleLogo.src = GZ_TITLE_SRC;
