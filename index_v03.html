@@ -1733,6 +1733,39 @@ function downloadGodzillaPhoto() {
 }
 // ──────────────────────────────────────────────────────────
 
+// ==============================
+// 外部リンクをタップ1回で開く（iOS Safari対策）
+// 指を離した瞬間（touchend）に window.open する。
+// 指が動いた（スクロール）場合は開かない。
+// ==============================
+function bindTapLink(el) {
+  if (!el || el._tapLinkBound) return;
+  el._tapLinkBound = true;
+  var sx = 0, sy = 0;
+  function openUrl() {
+    var url = el.getAttribute('href');
+    if (!url || url === '#') return;
+    var w = window.open(url, '_blank');
+    if (w) { try { w.opener = null; } catch (err) {} }  // 開いた先から元ページを操作させない
+    else { location.href = url; } // ポップアップが拒否された場合は同じタブで開く
+  }
+  el.addEventListener('touchstart', function(e) {
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  }, {passive:true});
+  el.addEventListener('touchend', function(e) {
+    var t = e.changedTouches[0];
+    if (Math.abs(t.clientX - sx) > 12 || Math.abs(t.clientY - sy) > 12) return;
+    e.preventDefault();   // 後から来るclickでの二重オープンを防ぐ
+    e.stopPropagation();
+    openUrl();
+  }, {passive:false});
+  el.addEventListener('click', function(e) {  // PC（マウス）用
+    e.preventDefault();
+    e.stopPropagation();
+    openUrl();
+  });
+}
+
 function closeGodzillaOverlay() {
   var ov = document.getElementById('godzilla-overlay');
   ov.classList.add('hide');
@@ -1758,6 +1791,7 @@ function openGodzillaOverlay(s) {
   if (s.gz_youtube) {
     ytLink.href = s.gz_youtube;
     ytLink.style.display = 'inline-flex';
+    bindTapLink(ytLink);
   } else {
     ytLink.style.display = 'none';
   }
@@ -1814,6 +1848,7 @@ function openPanel(s) {
     ayt.rel = 'noopener';
     ayt.innerHTML = '▶ メイキング映像を見る（YouTube）';
     plinks.appendChild(ayt);
+    bindTapLink(ayt);
   }
 }
 
